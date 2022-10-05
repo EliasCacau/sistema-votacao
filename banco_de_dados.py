@@ -60,7 +60,6 @@ def consultar_cpf(consultar):
 # inserir(query)
 
 
-# votos = 2
 # set = f'UPDATE candidato SET votos="{votos}" WHERE num_candidato LIKE 4002;'
 # atualizar(set)
 

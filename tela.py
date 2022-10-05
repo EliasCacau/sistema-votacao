@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox, ttk, Menu
 import banco_de_dados as bd
-# import bcrypt
+import bcrypt
 
 class Tela():
     def __init__(self, master):
+        mestre = master
         self.janela = master
         self.janela.geometry("500x400")
         self.janela.title("Votação")
@@ -51,12 +52,18 @@ class Tela():
         self.config_menu.add_command(label="Sair", command=self.janela.quit)
         self.menu_bar.add_cascade(label="Configurações", menu=self.config_menu)
 
+        self.button = tk.Button(self.frm_login, text="NOVA JANELA", command=self.nova_janela(self.janela))
+        self.button.grid(column=1, row=9)
+
+    def nova_janela(self, master):
+        #self.janela.destroy()
+        self.nova_janela = master
+        self.nova_janela.geometry("800x600")
+
     # Funções
     def login(self):
         cpf = self.ent_cpf.get()
-        senha = self.ent_senha.get()
-        #salt = bcrypt.gensalt(8)
-        #senha = bcrypt.hashpw(senha, salt)
+        senha = self.ent_senha.get().encode("utf-8")
         if cpf == "":
             messagebox.showinfo("Insira o cpf", "O campo cpf está vazio!")
         elif senha == "":
@@ -66,9 +73,11 @@ class Tela():
             valores = bd.consultar(query)
             logado = False
             for i in valores:
-                if i[0] == cpf and i[1] == senha:
-                    logado = True
-                    self.user_logged = i[2]
+                if i[0] == cpf:
+                    hash = i[1][2:len(i[1])-1].encode("utf-8")
+                    if bcrypt.checkpw(senha, hash):
+                        logado = True
+                        self.user_logged = i[2]
             if logado:
                 # messagebox.showinfo("Logado", "Logado com sucesso!!!")
                 if self.user_logged == 12:
@@ -119,9 +128,9 @@ class Tela():
         sexo = self.cbx_sexo.get()
 
         # Criptografando a senha
-        # salt = bcrypt.gensalt(8)
-        # senha = bcrypt.hashpw(senha, salt)
-        # con_senha = bcrypt.hashpw(con_senha, salt)
+        salt = bcrypt.gensalt(8)
+        senha = bcrypt.hashpw(senha, salt)
+        con_senha = bcrypt.hashpw(con_senha, salt)
 
         if nome == "":
             messagebox.showinfo("Insira um nome", "O campo nome está incorreto!")
@@ -146,6 +155,7 @@ class Tela():
             query = 'SELECT cpf FROM usuario;'
             valores = bd.consultar_cpf(query)
             confirmar = False
+            #senha = senha[2:62]
             for i in valores:
                 if cpf == i[0]:
                     confirmar = True
@@ -184,19 +194,15 @@ class Tela():
         self.tvw.heading('id', text='Id')
         self.tvw.heading('nome', text='Nome')
         self.tvw.grid(row=3, column=0, columnspan=3)
+        self.atualizar_tvw()
 
     def atualizar_tvw(self):
-        selecionado = self.tvw.selection()
-        if len(selecionado) != 1:
-            messagebox.showwarning('Aviso', 'Selecione um cliente.')
-        else:
-            nome = self.tvw.item(selecionado, 'values')[1]
-            self.ent_nome.insert(0, nome)
-            # self.btn_confirmar['state'] = tk.NORMAL
-            # self.btn_atualizar['state'] = tk.DISABLED
-            # self.btn_inserir['state'] = tk.DISABLED
-            # self.btn_remover['state'] = tk.DISABLED
-            # self.btn_cancelar['state'] = tk.NORMAL
+        for i in self.tvw.get_children():
+            self.tvw.delete(i)
+        query = 'SELECT * FROM candidato;'
+        dados = bd.consultar(query)
+        for tupla in dados:
+            self.tvw.insert('', tk.END, values=tupla)
 
     def inserir_cadidato(self):
         nome = self.ent_nome.get()

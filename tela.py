@@ -1,12 +1,16 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox, ttk, Menu
 import banco_de_dados as bd
+# import bcrypt
+
 class Tela():
     def __init__(self, master):
         self.janela = master
         self.janela.geometry("500x400")
         self.janela.title("Votação")
         # self.janela.configure(bg="White")
+
+        self.user_logged = ''
 
         # Login/Cadastro
         self.frm_login = tk.Frame(self.janela)
@@ -34,26 +38,46 @@ class Tela():
         self.btn_cadastro = tk.Button(self.frm_login, text="Cadastre-se", command=self.cadastro, width=12)
         self.btn_cadastro.grid(column=0, row=7, pady=20)
 
+        self.btn_destroir = tk.Button(self.frm_login, text="VOTE AQUI", command=self.votacao)
+        self.btn_destroir.grid(column=1, row=7)
+
+        self.btn_admin = tk.Button(self.frm_login, text="ADMINISTRADOR", command=self.administrador)
+        self.btn_admin.grid(column=1, row=8)
+
+        self.menu_bar = Menu(self.janela)
+        self.janela.config(menu=self.menu_bar)
+
+        self.config_menu = Menu(self.menu_bar, tearoff=0)
+        self.config_menu.add_command(label="Sair", command=self.janela.quit)
+        self.menu_bar.add_cascade(label="Configurações", menu=self.config_menu)
+
     # Funções
     def login(self):
         cpf = self.ent_cpf.get()
         senha = self.ent_senha.get()
+        #salt = bcrypt.gensalt(8)
+        #senha = bcrypt.hashpw(senha, salt)
         if cpf == "":
-            messagebox.showinfo("Insira um nome", "O campo nome está vazio!")
+            messagebox.showinfo("Insira o cpf", "O campo cpf está vazio!")
         elif senha == "":
-            messagebox.showinfo("Insira um nome de usuário", "O campo nome de usuário está vazio!")
+            messagebox.showinfo("Insira a senha", "O campo senha está vazio!")
         else:
-            query = 'SELECT cpf, senha FROM usuario;'
+            query = 'SELECT cpf, senha, id senha FROM usuario;'
             valores = bd.consultar(query)
             logado = False
             for i in valores:
                 if i[0] == cpf and i[1] == senha:
                     logado = True
+                    self.user_logged = i[2]
             if logado:
                 # messagebox.showinfo("Logado", "Logado com sucesso!!!")
-                self.votacao()
+                if self.user_logged == 12:
+                    print(self.user_logged)
+                    self.administrador()
+                else:
+                    self.votacao()
             else:
-                messagebox.showinfo("Dados incorretos", "Usuário ou senha incorreto(s)")
+                messagebox.showinfo("Dados incorretos", "Usuário ou senha inválido")
 
     def cadastro(self):
         self.cadastro = tk.Toplevel()
@@ -90,14 +114,20 @@ class Tela():
     def confirma_cadastro(self):
         nome = self.ent_nome.get()
         cpf = self.ent_cpf.get()
-        senha = self.ent_senha.get()
-        con_senha = self.ent_con_senha.get()
+        senha = self.ent_senha.get().encode('utf-8')
+        con_senha = self.ent_con_senha.get().encode('utf-8')
         sexo = self.cbx_sexo.get()
-        print(sexo)
+
+        # Criptografando a senha
+        # salt = bcrypt.gensalt(8)
+        # senha = bcrypt.hashpw(senha, salt)
+        # con_senha = bcrypt.hashpw(con_senha, salt)
+
         if nome == "":
             messagebox.showinfo("Insira um nome", "O campo nome está incorreto!")
             self.cadastro.deiconify()
-        elif len(cpf) != 11:
+        #elif len(cpf) != 11:
+        elif cpf == "":
             messagebox.showinfo("Insira o cpf", "O campo CPF está incorreto!")
             self.cadastro.deiconify()
         elif not cpf.isnumeric():
@@ -129,10 +159,61 @@ class Tela():
                 messagebox.showinfo("CPF já cadastrado", "O CPF já cadastrado no servidor!")
                 self.cadastro.destroy()
 
+    def administrador(self):
+        self.admin = tk.Toplevel()
+        self.admin.geometry("800x600")
+        self.admin.title("Administrador")
+
+        self.lbl_titulo = tk.Label(self.admin, text="Candidatos", font=32)
+        self.lbl_titulo.pack()
+
+        self.frm_candidato = tk.Frame(self.admin)
+        self.frm_candidato.pack()
+
+        self.lbl_nome = tk.Label(self.frm_candidato, text='Nome:')
+        self.lbl_nome.grid(row=0, column=0)
+        self.ent_nome = tk.Entry(self.frm_candidato, width=40)
+        self.ent_nome.grid(row=0, column=1)
+
+        self.btn_inserir = tk.Button(self.frm_candidato, text='Inserir', command=self.inserir_cadidato)
+        self.btn_inserir.grid(row=1, column=1, sticky=tk.E)
+
+        self.tvw = ttk.Treeview(self.frm_candidato, columns=('id', 'nome'), show='headings')
+        self.tvw.column('id', width=40)
+        self.tvw.column('nome', width=150)
+        self.tvw.heading('id', text='Id')
+        self.tvw.heading('nome', text='Nome')
+        self.tvw.grid(row=3, column=0, columnspan=3)
+
+    def atualizar_tvw(self):
+        selecionado = self.tvw.selection()
+        if len(selecionado) != 1:
+            messagebox.showwarning('Aviso', 'Selecione um cliente.')
+        else:
+            nome = self.tvw.item(selecionado, 'values')[1]
+            self.ent_nome.insert(0, nome)
+            # self.btn_confirmar['state'] = tk.NORMAL
+            # self.btn_atualizar['state'] = tk.DISABLED
+            # self.btn_inserir['state'] = tk.DISABLED
+            # self.btn_remover['state'] = tk.DISABLED
+            # self.btn_cancelar['state'] = tk.NORMAL
+
+    def inserir_cadidato(self):
+        nome = self.ent_nome.get()
+        if nome == '':
+            messagebox.showwarning('Aviso', 'Insira um nome!')
+        else:
+            sql = f'INSERT INTO candidato ("nome") VALUES("{nome}");'
+            bd.inserir(sql)
+            self.atualizar_tvw()
+            messagebox.showinfo('Aviso', 'Cliente inserido com sucesso!')
+            self.ent_nome.delete(0, 'end')
+
     def votacao(self):
-        self.votacao = tk.Toplevel(self.janela)
-        self.votacao.geometry("800x600")
-        self.lbl_teste = tk.Label(self.votacao, text="VOTE AQUI", font=50).pack()
+        self.votar = tk.Toplevel(self.janela)
+        self.votar.geometry("800x600")
+        self.votar.title("Área de votos")
+
 
 app = tk.Tk()
 Tela(app)

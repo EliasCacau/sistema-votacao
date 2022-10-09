@@ -1,20 +1,216 @@
 import tkinter as tk
 from tkinter import messagebox, ttk, Menu
+from tkinter import filedialog as fd
 import banco_de_dados as bd
 import bcrypt
 
 class Tela():
     def __init__(self, master):
-        mestre = master
         self.janela = master
         self.janela.geometry("500x400")
-        self.janela.title("Votação")
+        self.janela.title("Administrador")
         # self.janela.configure(bg="White")
-
+        self.janela.withdraw()
+        self.login()
         self.user_logged = ''
 
+        self.menu_bar = tk.Menu(self.janela)
+        self.janela.config(menu=self.menu_bar)
+
+        self.cand_menu = Menu(self.menu_bar, tearoff=0)
+        self.cand_menu.add_command(label="Adicionar candidato", command=self.inserir_candidatos)
+        self.cand_menu.add_command(label="Mostrar candidatos", command=self.candidatos)
+        self.menu_bar.add_cascade(label="Candidatos", menu=self.cand_menu)
+
+        self.cargo_menu = Menu(self.menu_bar, tearoff=0)
+        self.cargo_menu.add_command(label="Adicionar cargos", command=self.janela)
+        self.menu_bar.add_cascade(label="Cargos", menu=self.cargo_menu)
+
+        self.eleicao_menu = Menu(self.menu_bar, tearoff=0)
+        self.eleicao_menu.add_command(label="Adicionar eleição", command=self.janela)
+        self.menu_bar.add_cascade(label="Eleições", menu=self.eleicao_menu)
+
+        self.config_menu = Menu(self.menu_bar, tearoff=0)
+        self.config_menu.add_command(label="Sair", command=self.janela.quit)
+        self.menu_bar.add_cascade(label="Configurações", menu=self.config_menu)
+
+    def inserir_candidatos(self):
+        self.ins_candidato = tk.Toplevel(self.janela)
+        self.ins_candidato.title("Inserir candidatos")
+        self.ins_candidato.geometry("400x250")
+        self.voltar = tk.Button(self.ins_candidato, text="Voltar", command=self.ins_candidato.destroy)
+        self.voltar.pack(side=tk.LEFT)
+        self.lbl_titulo = tk.Label(self.ins_candidato, text="Cadastrar Candidato", font=32)
+        self.lbl_titulo.pack()
+
+        self.frm_candidato = tk.Frame(self.ins_candidato)
+        self.frm_candidato.pack()
+
+        self.lbl_nome = tk.Label(self.frm_candidato, text='Nome do candidato:')
+        self.lbl_nome.grid(column=0, row=0, pady=10)
+        self.ent_nome = tk.Entry(self.frm_candidato, width=30)
+        self.ent_nome.grid(column=1, row=0)
+
+        self.lbl_imagem = tk.Label(self.frm_candidato, text="(Opcional):")
+        self.lbl_imagem.grid(column=0, row=1, pady=10)
+
+        self.btn_imagem = tk.Button(self.frm_candidato, text="Selecionar imagem", command=self.imagem_candidato)
+        self.btn_imagem.grid(column=1, row=1)
+
+        self.btn_inserir = tk.Button(self.frm_candidato, text='Adicionar Candidato', command=self.inserir_cadidato)
+        self.btn_inserir.grid(column=0, row=3, columnspan=2, pady=10)
+
+        self.imagem = ''
+
+    def candidatos(self):
+        self.candidatos = tk.Toplevel(self.janela)
+        self.candidatos.geometry("500x300")
+        self.candidatos.title("Candidatos")
+        self.lbl_cand = tk.Label(self.candidatos, text="                 Candidatos", font=32)
+        self.lbl_cand.pack()
+        self.voltar = tk.Button(self.candidatos, text="Voltar", command=self.candidatos.destroy)
+        self.voltar.pack(side=tk.LEFT)
+        self.tvw = ttk.Treeview(self.candidatos, columns=('id', 'nome'), show='headings')
+        self.tvw.column('id', width=40)
+        self.tvw.column('nome', width=250)
+        self.tvw.heading('id', text='Id')
+        self.tvw.heading('nome', text='Nome')
+        self.tvw.pack()
+        self.atualizar_tvw()
+
+        self.frm_botao = tk.Frame(self.candidatos)
+        self.frm_botao.pack()
+
+        self.btn_mostrar = tk.Button(self.frm_botao, text="Ver foto", command=self.mostrar_candidato)
+        self.btn_mostrar.grid(column=0, row=0)
+        self.btn_editar = tk.Button(self.frm_botao, text="Editar", command=self.editar_candidato)
+        self.btn_editar.grid(column=1, row=0)
+        self.btn_excluir = tk.Button(self.frm_botao, text="Excluir", command=self.excluir_candidato)
+        self.btn_excluir.grid(column=2, row=0)
+
+    def editar_candidato(self):
+        selecionado = self.tvw.selection()
+        lista = self.tvw.item(selecionado, "values")
+
+        self.edit_cand = tk.Toplevel(self.candidatos)
+        self.edit_cand.title("Editar candidato")
+        self.edit_cand.geometry("300x250")
+
+        self.nome = tk.Label(self.edit_cand, text="Editar candidato", font=32)
+        self.nome.pack()
+
+        self.frm_edit = tk.Frame(self.edit_cand)
+        self.frm_edit.pack()
+        self.lbl_nome = tk.Label(self.frm_edit, text="Nome:")
+        self.lbl_nome.grid(column=0, row=0, pady=10)
+        self.ent_nome = tk.Entry(self.frm_edit)
+        self.ent_nome.grid(column=1, row=0)
+        self.ent_nome.insert(0, lista[1])
+
+        self.edit_img = tk.Label(self.frm_edit, text="Editar Imagem:")
+        self.edit_img.grid(column=0, row=1)
+        self.btn_img = tk.Button(self.frm_edit, text="Selecionar imagem", command=self.edit_imagem_cand)
+        self.btn_img.grid(column=1, row=1)
+
+        self.btn_conf_edit = tk.Button(self.frm_edit, text="Confirmar", command=self.confirmar_edit_cand)
+        self.btn_conf_edit.grid(column=0, row=2, columnspan=2, pady=10)
+
+        self.nova_img = ''
+
+    def edit_imagem_cand(self):
+        tipos = (('Imagem', '*.PNG'), ('Todos', '*.*'))
+        self.nova_img = fd.askopenfilename(initialdir='C:/Users/andre/PycharmProjects/sistema-votacao/imgs',
+                                         filetypes=tipos)
+        self.edit_cand.deiconify()
+
+    def confirmar_edit_cand(self):
+        selecionado = self.tvw.selection()
+        lista = self.tvw.item(selecionado, "values")
+        nome = self.ent_nome.get()
+        if nome == "":
+            messagebox.showinfo("O campo nome está vazio!")
+        else:
+            mensagem = messagebox.askyesno("CUIDADO", "Você tem certeza que deseja realizar a(s) alteração(ões)?")
+            if mensagem:
+                if self.nova_img == '':
+                    query = f'UPDATE candidato SET nome="{nome}" WHERE id={lista[0]};'
+                    bd.atualizar(query)
+                    self.atualizar_tvw()
+                    self.edit_cand.destroy()
+                    self.candidatos.deiconify()
+                else:
+                    query = f'UPDATE candidato SET nome="{nome}", foto="{self.nova_img}" WHERE id={lista[0]};'
+                    bd.atualizar(query)
+                    self.atualizar_tvw()
+                    self.edit_cand.destroy()
+                    self.candidatos.deiconify()
+            else:
+                self.edit_cand.destroy()
+                self.candidatos.deiconify()
+
+    def excluir_candidato(self):
+        selecionado = self.tvw.selection()
+        lista = self.tvw.item(selecionado, "values")
+        mensagem = messagebox.askyesno("Excluir", "Você tem certeza que deseja excluir o candidato?")
+        if mensagem:
+            sql = f'DELETE FROM candidato WHERE id={lista[0]};'
+            bd.deletar(sql)
+            messagebox.showinfo("Excluído", "Candidato excluído com sucesso")
+            self.atualizar_tvw()
+        self.candidatos.deiconify()
+
+    def imagem_candidato(self):
+        tipos = (('Imagem', '*.PNG'), ('Todos', '*.*'))
+        self.imagem = fd.askopenfilename(initialdir='C:/Users/andre/PycharmProjects/sistema-votacao/imgs',
+                                         filetypes=tipos)
+        self.ins_candidato.deiconify()
+
+    def mostrar_candidato(self):
+        selecionado = self.tvw.selection()
+        if selecionado == ():
+            messagebox.showinfo("Selecine candidato", "Selecione um candidato")
+            self.candidatos.deiconify()
+        else:
+            self.candidato = tk.Toplevel(self.janela)
+            self.candidato.title("Candidato")
+            id = self.tvw.item(selecionado, 'values')[0]
+            sql = f"SELECT * FROM candidato WHERE id={id}"
+            valor = bd.consultar(sql)
+            self.lbl_cadidato = tk.Label(self.candidato, text=f"{valor[0][1]}")
+            self.lbl_cadidato.pack()
+            self.minha_imagem = tk.PhotoImage(file=f"{valor[0][2]}")
+            self.lbl_mostrar_cand = tk.Label(self.candidato, image=self.minha_imagem)
+            self.lbl_mostrar_cand.image = self.minha_imagem
+            self.lbl_mostrar_cand.pack()
+
+    def inserir_cadidato(self):
+        nome = self.ent_nome.get()
+        if nome == '':
+            messagebox.showwarning('Aviso', 'Insira um nome!')
+            self.ins_candidato.deiconify()
+        else:
+            if self.imagem == '':
+                self.imagem = 'C:/Users/andre/PycharmProjects/sistema-votacao/imgs/user.png'
+            sql = f'INSERT INTO candidato ("nome", "foto") VALUES("{nome}", "{self.imagem}");'
+            bd.inserir(sql)
+            messagebox.showinfo('Aviso', 'Cliente inserido com sucesso!')
+            self.ent_nome.delete(0, 'end')
+            self.ins_candidato.deiconify()
+
+    def atualizar_tvw(self):
+        for i in self.tvw.get_children():
+            self.tvw.delete(i)
+        query = 'SELECT id, nome FROM candidato;'
+        dados = bd.consultar(query)
+        for tupla in dados:
+            self.tvw.insert('', tk.END, values=tupla)
+
+    def login(self):
+        self.login = tk.Toplevel()
+        self.login.geometry("800x600")
+        self.login.title("Login")
         # Login/Cadastro
-        self.frm_login = tk.Frame(self.janela)
+        self.frm_login = tk.Frame(self.login)
         self.frm_login.pack(pady=50)
 
         self.lbl_cpf = tk.Label(self.frm_login, text="CPF")
@@ -33,7 +229,7 @@ class Tela():
         self.lbl_null1 = tk.Label(self.frm_login)
         self.lbl_null1.grid(column=0, row=5)
 
-        self.btn_login = tk.Button(self.frm_login, text="Entrar", command=self.login, width=12)
+        self.btn_login = tk.Button(self.frm_login, text="Entrar", command=self.confirma_login, width=12)
         self.btn_login.grid(column=0, row=6, columnspan=1)
 
         self.btn_cadastro = tk.Button(self.frm_login, text="Cadastre-se", command=self.cadastro, width=12)
@@ -42,26 +238,15 @@ class Tela():
         self.btn_destroir = tk.Button(self.frm_login, text="VOTE AQUI", command=self.votacao)
         self.btn_destroir.grid(column=1, row=7)
 
-        self.btn_admin = tk.Button(self.frm_login, text="ADMINISTRADOR", command=self.administrador)
+        self.btn_admin = tk.Button(self.frm_login, text="ADMINISTRADOR", command=self.adm)
         self.btn_admin.grid(column=1, row=8)
 
-        self.menu_bar = Menu(self.janela)
-        self.janela.config(menu=self.menu_bar)
-
-        self.config_menu = Menu(self.menu_bar, tearoff=0)
-        self.config_menu.add_command(label="Sair", command=self.janela.quit)
-        self.menu_bar.add_cascade(label="Configurações", menu=self.config_menu)
-
-        self.button = tk.Button(self.frm_login, text="NOVA JANELA", command=self.nova_janela(self.janela))
-        self.button.grid(column=1, row=9)
-
-    def nova_janela(self, master):
-        #self.janela.destroy()
-        self.nova_janela = master
-        self.nova_janela.geometry("800x600")
+    def adm(self):
+        self.login.destroy()
+        self.janela.deiconify()
 
     # Funções
-    def login(self):
+    def confirma_login(self):
         cpf = self.ent_cpf.get()
         senha = self.ent_senha.get().encode("utf-8")
         if cpf == "":
@@ -69,7 +254,7 @@ class Tela():
         elif senha == "":
             messagebox.showinfo("Insira a senha", "O campo senha está vazio!")
         else:
-            query = 'SELECT cpf, senha, id senha FROM usuario;'
+            query = 'SELECT cpf, senha, id FROM usuario;'
             valores = bd.consultar(query)
             logado = False
             for i in valores:
@@ -80,11 +265,13 @@ class Tela():
                         self.user_logged = i[2]
             if logado:
                 # messagebox.showinfo("Logado", "Logado com sucesso!!!")
-                if self.user_logged == 12:
+                if self.user_logged == 0:
                     print(self.user_logged)
-                    self.administrador()
+                    self.login.destroy()
+                    self.janela.deiconify()
                 else:
                     self.votacao()
+                    self.login.destroy()
             else:
                 messagebox.showinfo("Dados incorretos", "Usuário ou senha inválido")
 
@@ -168,52 +355,6 @@ class Tela():
             else:
                 messagebox.showinfo("CPF já cadastrado", "O CPF já cadastrado no servidor!")
                 self.cadastro.destroy()
-
-    def administrador(self):
-        self.admin = tk.Toplevel()
-        self.admin.geometry("800x600")
-        self.admin.title("Administrador")
-
-        self.lbl_titulo = tk.Label(self.admin, text="Candidatos", font=32)
-        self.lbl_titulo.pack()
-
-        self.frm_candidato = tk.Frame(self.admin)
-        self.frm_candidato.pack()
-
-        self.lbl_nome = tk.Label(self.frm_candidato, text='Nome:')
-        self.lbl_nome.grid(row=0, column=0)
-        self.ent_nome = tk.Entry(self.frm_candidato, width=40)
-        self.ent_nome.grid(row=0, column=1)
-
-        self.btn_inserir = tk.Button(self.frm_candidato, text='Inserir', command=self.inserir_cadidato)
-        self.btn_inserir.grid(row=1, column=1, sticky=tk.E)
-
-        self.tvw = ttk.Treeview(self.frm_candidato, columns=('id', 'nome'), show='headings')
-        self.tvw.column('id', width=40)
-        self.tvw.column('nome', width=150)
-        self.tvw.heading('id', text='Id')
-        self.tvw.heading('nome', text='Nome')
-        self.tvw.grid(row=3, column=0, columnspan=3)
-        self.atualizar_tvw()
-
-    def atualizar_tvw(self):
-        for i in self.tvw.get_children():
-            self.tvw.delete(i)
-        query = 'SELECT * FROM candidato;'
-        dados = bd.consultar(query)
-        for tupla in dados:
-            self.tvw.insert('', tk.END, values=tupla)
-
-    def inserir_cadidato(self):
-        nome = self.ent_nome.get()
-        if nome == '':
-            messagebox.showwarning('Aviso', 'Insira um nome!')
-        else:
-            sql = f'INSERT INTO candidato ("nome") VALUES("{nome}");'
-            bd.inserir(sql)
-            self.atualizar_tvw()
-            messagebox.showinfo('Aviso', 'Cliente inserido com sucesso!')
-            self.ent_nome.delete(0, 'end')
 
     def votacao(self):
         self.votar = tk.Toplevel(self.janela)

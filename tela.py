@@ -3,6 +3,8 @@ from tkinter import messagebox, ttk, Menu
 from tkinter import filedialog as fd
 import banco_de_dados as bd
 import bcrypt
+import os
+from PIL import Image
 
 class Tela():
     def __init__(self, master):
@@ -23,11 +25,11 @@ class Tela():
         self.menu_bar.add_cascade(label="Candidatos", menu=self.cand_menu)
 
         self.cargo_menu = Menu(self.menu_bar, tearoff=0)
-        self.cargo_menu.add_command(label="Adicionar cargos", command=self.janela)
+        self.cargo_menu.add_command(label="Mostrar cargos", command=self.mostrar_cargo)
         self.menu_bar.add_cascade(label="Cargos", menu=self.cargo_menu)
 
         self.eleicao_menu = Menu(self.menu_bar, tearoff=0)
-        self.eleicao_menu.add_command(label="Adicionar eleição", command=self.janela)
+        self.eleicao_menu.add_command(label="Mostrar eleições", command=self.mostrar_eleicoes)
         self.menu_bar.add_cascade(label="Eleições", menu=self.eleicao_menu)
 
         self.config_menu = Menu(self.menu_bar, tearoff=0)
@@ -37,8 +39,8 @@ class Tela():
     def inserir_candidatos(self):
         self.ins_candidato = tk.Toplevel(self.janela)
         self.ins_candidato.title("Inserir candidatos")
-        self.ins_candidato.geometry("400x250")
-        self.voltar = tk.Button(self.ins_candidato, text="Voltar", command=self.ins_candidato.destroy)
+        self.ins_candidato.geometry("400x160")
+        self.voltar = tk.Button(self.ins_candidato, text="Voltar", command=self.ins_candidato.destroy, width=8)
         self.voltar.pack(side=tk.LEFT)
         self.lbl_titulo = tk.Label(self.ins_candidato, text="Cadastrar Candidato", font=32)
         self.lbl_titulo.pack()
@@ -64,11 +66,20 @@ class Tela():
 
     def candidatos(self):
         self.candidatos = tk.Toplevel(self.janela)
-        self.candidatos.geometry("500x300")
+        self.candidatos.geometry("400x335")
         self.candidatos.title("Candidatos")
-        self.lbl_cand = tk.Label(self.candidatos, text="                 Candidatos", font=32)
+        self.lbl_cand = tk.Label(self.candidatos, text="          Candidatos", font=32)
         self.lbl_cand.pack()
-        self.voltar = tk.Button(self.candidatos, text="Voltar", command=self.candidatos.destroy)
+        self.frm_pesq = tk.Frame(self.candidatos)
+        self.frm_pesq.pack()
+        self.lbl_pesq = tk.Label(self.frm_pesq, text="Pesquisar:")
+        self.lbl_pesq.grid(column=0, row=0)
+        self.ent_pesq = tk.Entry(self.frm_pesq)
+        self.ent_pesq.grid(column=1, row=0)
+        self.btn_pesq = tk.Button(self.frm_pesq, text="O", width=3, command=self.pesquisar_tvw_candidato)
+        self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
+
+        self.voltar = tk.Button(self.candidatos, text="Voltar", command=self.candidatos.destroy, width=8)
         self.voltar.pack(side=tk.LEFT)
         self.tvw = ttk.Treeview(self.candidatos, columns=('id', 'nome'), show='headings')
         self.tvw.column('id', width=40)
@@ -76,17 +87,19 @@ class Tela():
         self.tvw.heading('id', text='Id')
         self.tvw.heading('nome', text='Nome')
         self.tvw.pack()
-        self.atualizar_tvw()
+        self.atualizar_tvw_candidato()
 
         self.frm_botao = tk.Frame(self.candidatos)
         self.frm_botao.pack()
 
-        self.btn_mostrar = tk.Button(self.frm_botao, text="Ver foto", command=self.mostrar_candidato)
-        self.btn_mostrar.grid(column=0, row=0)
-        self.btn_editar = tk.Button(self.frm_botao, text="Editar", command=self.editar_candidato)
-        self.btn_editar.grid(column=1, row=0)
-        self.btn_excluir = tk.Button(self.frm_botao, text="Excluir", command=self.excluir_candidato)
-        self.btn_excluir.grid(column=2, row=0)
+        self.btn_mostrar = tk.Button(self.frm_botao, text="Ver foto", command=self.mostrar_candidato, width=8)
+        self.btn_mostrar.grid(column=0, row=0, padx=2, pady=5)
+        self.btn_adc = tk.Button(self.frm_botao, text="Adicionar", command=self.inserir_candidatos, width=8)
+        self.btn_adc.grid(column=1, row=0, padx=2)
+        self.btn_editar = tk.Button(self.frm_botao, text="Editar", command=self.editar_candidato, width=8)
+        self.btn_editar.grid(column=2, row=0, padx=2)
+        self.btn_excluir = tk.Button(self.frm_botao, text="Excluir", command=self.excluir_candidato, width=8)
+        self.btn_excluir.grid(column=3, row=0, padx=2)
 
     def editar_candidato(self):
         selecionado = self.tvw.selection()
@@ -119,7 +132,7 @@ class Tela():
 
     def edit_imagem_cand(self):
         tipos = (('Imagem', '*.PNG'), ('Todos', '*.*'))
-        self.nova_img = fd.askopenfilename(initialdir='C:/Users/andre/PycharmProjects/sistema-votacao/imgs',
+        self.nova_img = fd.askopenfilename(initialdir='/imgs',
                                          filetypes=tipos)
         self.edit_cand.deiconify()
 
@@ -135,13 +148,13 @@ class Tela():
                 if self.nova_img == '':
                     query = f'UPDATE candidato SET nome="{nome}" WHERE id={lista[0]};'
                     bd.atualizar(query)
-                    self.atualizar_tvw()
+                    self.atualizar_tvw_cadidato()
                     self.edit_cand.destroy()
                     self.candidatos.deiconify()
                 else:
                     query = f'UPDATE candidato SET nome="{nome}", foto="{self.nova_img}" WHERE id={lista[0]};'
                     bd.atualizar(query)
-                    self.atualizar_tvw()
+                    self.atualizar_tvw_cadidato()
                     self.edit_cand.destroy()
                     self.candidatos.deiconify()
             else:
@@ -156,13 +169,19 @@ class Tela():
             sql = f'DELETE FROM candidato WHERE id={lista[0]};'
             bd.deletar(sql)
             messagebox.showinfo("Excluído", "Candidato excluído com sucesso")
-            self.atualizar_tvw()
+            self.atualizar_tvw_cadidato()
         self.candidatos.deiconify()
 
     def imagem_candidato(self):
-        tipos = (('Imagem', '*.PNG'), ('Todos', '*.*'))
-        self.imagem = fd.askopenfilename(initialdir='C:/Users/andre/PycharmProjects/sistema-votacao/imgs',
+        tipos = (('Imagem', '*.PNG'), ('Imagem', '*.JPG'), ('Todos', '*.*'))
+        self.imagem = fd.askopenfilename(initialdir=f'/imgs',
                                          filetypes=tipos)
+        if self.imagem.endswith(".jpg"):
+            img = Image.open(f'{self.imagem}')
+            self.imagem = self.imagem.replace(".jpg", "")
+            img.save(f'{self.imagem}.png')
+            os.remove(f'{self.imagem}.jpg')
+            self.imagem = f"{self.imagem}.png"
         self.ins_candidato.deiconify()
 
     def mostrar_candidato(self):
@@ -176,12 +195,12 @@ class Tela():
             id = self.tvw.item(selecionado, 'values')[0]
             sql = f"SELECT * FROM candidato WHERE id={id}"
             valor = bd.consultar(sql)
-            self.lbl_cadidato = tk.Label(self.candidato, text=f"{valor[0][1]}")
-            self.lbl_cadidato.pack()
             self.minha_imagem = tk.PhotoImage(file=f"{valor[0][2]}")
             self.lbl_mostrar_cand = tk.Label(self.candidato, image=self.minha_imagem)
             self.lbl_mostrar_cand.image = self.minha_imagem
             self.lbl_mostrar_cand.pack()
+            self.lbl_cadidato = tk.Label(self.candidato, text=f"{valor[0][1]}")
+            self.lbl_cadidato.pack()
 
     def inserir_cadidato(self):
         nome = self.ent_nome.get()
@@ -190,14 +209,15 @@ class Tela():
             self.ins_candidato.deiconify()
         else:
             if self.imagem == '':
-                self.imagem = 'C:/Users/andre/PycharmProjects/sistema-votacao/imgs/user.png'
+                dir = os.path.dirname(__file__)
+                self.imagem = f'{dir}/imgs/img1.png'
             sql = f'INSERT INTO candidato ("nome", "foto") VALUES("{nome}", "{self.imagem}");'
             bd.inserir(sql)
-            messagebox.showinfo('Aviso', 'Cliente inserido com sucesso!')
+            messagebox.showinfo('Aviso', 'Candidato inserido com sucesso!')
             self.ent_nome.delete(0, 'end')
             self.ins_candidato.deiconify()
 
-    def atualizar_tvw(self):
+    def atualizar_tvw_candidato(self):
         for i in self.tvw.get_children():
             self.tvw.delete(i)
         query = 'SELECT id, nome FROM candidato;'
@@ -205,9 +225,156 @@ class Tela():
         for tupla in dados:
             self.tvw.insert('', tk.END, values=tupla)
 
+    def pesquisar_tvw_candidato(self):
+        busca = self.ent_pesq.get()
+        for i in self.tvw.get_children():
+            self.tvw.delete(i)
+        if busca == '':
+            self.atualizar_tvw_candidato()
+        else:
+            query = f"SELECT id, nome FROM candidato WHERE nome LIKE '{busca}';"
+            dados = bd.consultar(query)
+            for tupla in dados:
+                self.tvw.insert('', tk.END, values=tupla)
+
+    def atualizar_tvw_cargo(self):
+        for i in self.tvw.get_children():
+            self.tvw.delete(i)
+        query = 'SELECT * FROM cargo;'
+        dados = bd.consultar(query)
+        for tupla in dados:
+            self.tvw.insert('', tk.END, values=tupla)
+
+    def pesquisar_tvw_cargo(self):
+        busca = self.ent_pesq.get()
+        for i in self.tvw.get_children():
+            self.tvw.delete(i)
+        if busca == '':
+            self.atualizar_tvw_cargo()
+        else:
+            query = f"SELECT * FROM cargo WHERE nome LIKE '{busca}';"
+            dados = bd.consultar(query)
+            for tupla in dados:
+                self.tvw.insert('', tk.END, values=tupla)
+
+    def mostrar_cargo(self):
+        self.cargo_mostrar = tk.Toplevel(self.janela)
+        self.cargo_mostrar.geometry("900x500")
+        self.cargo_mostrar.title("Cargos")
+        self.lbl_cargo = tk.Label(self.cargo_mostrar, text="                 Cargos", font=32)
+        self.lbl_cargo.pack()
+        self.frm_pesq = tk.Frame(self.cargo_mostrar)
+        self.frm_pesq.pack(fill=tk.BOTH, padx=90)
+        self.lbl_pesq = tk.Label(self.frm_pesq, text="Pesquisar:")
+        self.lbl_pesq.grid(column=0, row=0)
+        self.ent_pesq = tk.Entry(self.frm_pesq)
+        self.ent_pesq.grid(column=1, row=0)
+        self.btn_pesq = tk.Button(self.frm_pesq, text="O", width=3, command=self.pesquisar_tvw_candidato)
+        self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
+
+        self.voltar = tk.Button(self.cargo_mostrar, text="Voltar", command=self.cargo_mostrar.destroy, width=8)
+        self.voltar.pack(side=tk.LEFT)
+        self.tvw_cargos = ttk.Treeview(self.cargo_mostrar, columns=('Id', 'Nome do cargo', 'Candidato', 'Partido', 'Número','Eleição'), show='headings', height=18)
+        self.tvw_cargos.column('Id', width=40)
+        self.tvw_cargos.column('Nome do cargo', width=150)
+        self.tvw_cargos.column('Candidato', width=150)
+        self.tvw_cargos.column('Partido', width=150)
+        self.tvw_cargos.column('Número', width=150)
+        self.tvw_cargos.column('Eleição', width=150)
+        self.tvw_cargos.heading('Id', text='Id')
+        self.tvw_cargos.heading('Nome do cargo', text='Nome do Cargo')
+        self.tvw_cargos.heading('Candidato', text='Candidato')
+        self.tvw_cargos.heading('Partido', text='Partido')
+        self.tvw_cargos.heading('Número', text='Número')
+        self.tvw_cargos.heading('Eleição', text='Eleição')
+        self.tvw_cargos.pack()
+        #self.atualizar_tvw_cargo()
+
+        self.frm_botao = tk.Frame(self.cargo_mostrar)
+        self.frm_botao.pack(pady=10)
+
+        self.btn_inserir = tk.Button(self.frm_botao, text="Adicionar", command=self.adicionar_cargo, width=8)
+        self.btn_inserir.grid(column=0, row=0)
+        self.btn_editar = tk.Button(self.frm_botao, text="Editar", command=self.editar_cargo,width=8)
+        self.btn_editar.grid(column=1, row=0, padx=5)
+        self.btn_excluir = tk.Button(self.frm_botao, text="Excluir", command=self.excluir_cargo,width=8)
+        self.btn_excluir.grid(column=2, row=0)
+
+    def adicionar_cargo(self):
+        pass
+    def editar_cargo(self):
+        pass
+    def excluir_cargo(self):
+        pass
+
+    def mostrar_eleicoes(self):
+        self.eleicoes_mostrar = tk.Toplevel(self.janela)
+        self.eleicoes_mostrar.geometry("900x500")
+        self.eleicoes_mostrar.title("Eleições")
+        self.voltar = tk.Button(self.eleicoes_mostrar, text="Voltar", command=self.eleicoes_mostrar.destroy, width=8)
+        self.voltar.pack(side=tk.LEFT)
+        self.lbl_cargo = tk.Label(self.eleicoes_mostrar, text="     Eleições", font=32)
+        self.lbl_cargo.pack()
+        self.frm_pesq = tk.Frame(self.eleicoes_mostrar)
+        self.frm_pesq.pack(fill=tk.BOTH, padx=20)
+        self.lbl_pesq = tk.Label(self.frm_pesq, text="Pesquisar:")
+        self.lbl_pesq.grid(column=0, row=0)
+        self.ent_pesq = tk.Entry(self.frm_pesq)
+        self.ent_pesq.grid(column=1, row=0)
+        self.btn_pesq = tk.Button(self.frm_pesq, text="O", width=3, command=self.pesquisar_tvw_candidato)
+        self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
+
+        self.tvw_eleicao = ttk.Treeview(self.eleicoes_mostrar, columns=(
+        'Id', 'Nome da eleição', 'Descrição', 'Candidatos', 'Inicio', 'Fim', 'Ativo'), show='headings', height=18)
+        self.tvw_eleicao.column('Id', width=40)
+        self.tvw_eleicao.column('Nome da eleição', width=150)
+        self.tvw_eleicao.column('Descrição', width=150)
+        self.tvw_eleicao.column('Candidatos', width=150)
+        self.tvw_eleicao.column('Inicio', width=100)
+        self.tvw_eleicao.column('Fim', width=100)
+        self.tvw_eleicao.column('Ativo', width=100)
+        self.tvw_eleicao.heading('Id', text='Id')
+        self.tvw_eleicao.heading('Nome da eleição', text='Nome da eleição')
+        self.tvw_eleicao.heading('Descrição', text='Descrição')
+        self.tvw_eleicao.heading('Candidatos', text='Candidatos')
+        self.tvw_eleicao.heading('Inicio', text='Inicio')
+        self.tvw_eleicao.heading('Fim', text='Fim')
+        self.tvw_eleicao.heading('Ativo', text='Ativo')
+        self.tvw_eleicao.pack()
+
+        self.frm_botao = tk.Frame(self.eleicoes_mostrar)
+        self.frm_botao.pack(pady=10)
+
+        self.btn_inserir = tk.Button(self.frm_botao, text="Adicionar", command=self.adicionar_cargo, width=8)
+        self.btn_inserir.grid(column=0, row=0)
+        self.btn_editar = tk.Button(self.frm_botao, text="Editar", command=self.editar_cargo, width=8)
+        self.btn_editar.grid(column=1, row=0, padx=5)
+        self.btn_excluir = tk.Button(self.frm_botao, text="Excluir", command=self.excluir_cargo, width=8)
+        self.btn_excluir.grid(column=2, row=0)
+
+    def atualizar_tvw_eleicao(self):
+        for i in self.tvw.get_children():
+            self.tvw.delete(i)
+        query = 'SELECT * FROM eleicao;'
+        dados = bd.consultar(query)
+        for tupla in dados:
+            self.tvw.insert('', tk.END, values=tupla)
+
+    def pesquisar_tvw_eleicao(self):
+        busca = self.ent_pesq.get()
+        for i in self.tvw.get_children():
+            self.tvw.delete(i)
+        if busca == '':
+            self.atualizar_tvw_eleicao()
+        else:
+            query = f"SELECT * FROM cargo WHERE nome LIKE '{busca}';"
+            dados = bd.consultar(query)
+            for tupla in dados:
+                self.tvw.insert('', tk.END, values=tupla)
+
     def login(self):
         self.login = tk.Toplevel()
-        self.login.geometry("800x600")
+        self.login.geometry("400x400")
         self.login.title("Login")
         # Login/Cadastro
         self.frm_login = tk.Frame(self.login)
@@ -264,9 +431,7 @@ class Tela():
                         logado = True
                         self.user_logged = i[2]
             if logado:
-                # messagebox.showinfo("Logado", "Logado com sucesso!!!")
                 if self.user_logged == 0:
-                    print(self.user_logged)
                     self.login.destroy()
                     self.janela.deiconify()
                 else:

@@ -39,11 +39,20 @@ def consultar(consultar):
     con = conexao_banco()
     cursor = con.cursor()
     cursor.execute(consultar)
-    valores = cursor.fetchall()
-    #for i in valores:
-        #print(i)
-    con.close()
-    return valores
+    dados = cursor.fetchall()
+    caracteres = "[]'(),"
+    valores = []
+    for i in range(len(dados)):
+        valor = dados.pop()
+        for j in range(len(caracteres)):
+            valor = valor.replace(caracteres[j], "")
+        valores.append(valor)
+    print(valores)
+    # for i in valores:
+    #       for j in range(len(caracteres)):
+    #           valores[i] = valores[i].replace(caracteres[j], "")
+    # con.close()
+    return dados
 
 def consultar_cpf(consultar):
     con = conexao_banco()
@@ -58,7 +67,6 @@ def consultar_cpf(consultar):
 # query = 'INSERT INTO usuario ("nome", "user_name", "senha", "tipo", "status") VALUES ("Elias de Oliveira Cacau", "EliasCacau", "123", "Usuário", 0);'
 # query = 'INSERT INTO candidato ("nome", "num_candidato", "votos") VALUES ("Elias de Oliveira Cacau", "4002", 0);'
 # inserir(query)
-
 
 # set = f'UPDATE candidato SET votos="{votos}" WHERE num_candidato LIKE 4002;'
 # atualizar(set)

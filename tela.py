@@ -5,6 +5,7 @@ import banco_de_dados as bd
 import bcrypt
 import os
 from PIL import Image
+from tkcalendar import DateEntry
 
 class Tela():
     def __init__(self, master):
@@ -343,12 +344,60 @@ class Tela():
         self.frm_botao = tk.Frame(self.eleicoes_mostrar)
         self.frm_botao.pack(pady=10)
 
-        self.btn_inserir = tk.Button(self.frm_botao, text="Adicionar", command=self.adicionar_cargo, width=8)
+        self.btn_inserir = tk.Button(self.frm_botao, text="Adicionar", command=self.inserir_eleicao, width=8)
         self.btn_inserir.grid(column=0, row=0)
         self.btn_editar = tk.Button(self.frm_botao, text="Editar", command=self.editar_cargo, width=8)
         self.btn_editar.grid(column=1, row=0, padx=5)
         self.btn_excluir = tk.Button(self.frm_botao, text="Excluir", command=self.excluir_cargo, width=8)
         self.btn_excluir.grid(column=2, row=0)
+
+    def inserir_eleicao(self):
+        self.ins_eleicao = tk.Toplevel(self.janela)
+        self.ins_eleicao.title("Inserir candidatos")
+        self.ins_eleicao.geometry("800x600")
+        self.voltar = tk.Button(self.ins_eleicao, text="Voltar", command=self.ins_eleicao.destroy, width=8)
+        self.voltar.pack(side=tk.LEFT)
+        self.lbl_titulo = tk.Label(self.ins_eleicao, text="Cadastrar Eleição", font=32)
+        self.lbl_titulo.pack()
+
+        self.frm_eleicao = tk.Frame(self.ins_eleicao)
+        self.frm_eleicao.pack()
+
+        self.lbl_nome = tk.Label(self.frm_eleicao, text='Nome da eleição:')
+        self.lbl_nome.grid(column=0, row=0, pady=10)
+        self.ent_nome = tk.Entry(self.frm_eleicao, width=30)
+        self.ent_nome.grid(column=1, row=0)
+
+        self.lbl_data_ini = tk.Label(self.frm_eleicao, text='Início:')
+        self.lbl_data_ini.grid(column=0, row=1, pady=10)
+        self.data_ini = DateEntry(self.frm_eleicao,selectmode='day',date_pattern='dd-MM-yyyy')
+        self.data_ini.grid(column=1, row=1)
+
+        self.lbl_data_fim = tk.Label(self.frm_eleicao, text='Fim:')
+        self.lbl_data_fim.grid(column=0, row=2, pady=10)
+        self.data_fim = DateEntry(self.frm_eleicao, selectmode='day',date_pattern='dd-MM-yyyy')
+        self.data_fim.grid(column=1, row=2)
+
+        self.lbl_cargos = tk.Label(self.frm_eleicao, text="Cargos:")
+        self.lbl_cargos.grid(column=0, row=3)
+
+        self.cbx_cargos = ttk.Combobox(self.frm_eleicao, width=17)
+        query = 'SELECT DISTINCT nome_cargo FROM cargo;'
+        valores = bd.consultar(query)
+        self.cbx_cargos['values'] = (f'{valores}')
+        self.cbx_cargos.grid(column=1, row=3)
+
+        self.lbl_desc = tk.Label(self.frm_eleicao, text="Descrição:")
+        self.lbl_desc.grid(column=0, row=4)
+        self.ent_desc = tk.Entry(self.frm_eleicao)
+        self.ent_desc.grid(column=1, row=4)
+
+        self.btn_inserir = tk.Button(self.frm_eleicao, text='Adicionar Eleição', command=self.teste)
+        self.btn_inserir.grid(column=0, row=5, columnspan=2, pady=10)
+
+    def teste(self):
+        self.data_ini = self.data_ini.get_date()
+        self.data_ini = self.data_ini.strftime("%Y-%m-%d")  # 2021-04-18(For Database query)
 
     def atualizar_tvw_eleicao(self):
         for i in self.tvw.get_children():

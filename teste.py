@@ -1,17 +1,10 @@
 import tkinter as tk
 from tkcalendar import DateEntry
 
-my_w = tk.Tk()
-my_w.geometry("340x220")
-
-cal=DateEntry(my_w,selectmode='day')
-cal.grid(row=1,column=1,padx=15)
-btn = tk.Button(my_w, text="Confirmar")
-btn.grid(row=2, column=1)
-dt=cal.get_date()
-str_dt4 = dt.strftime("%Y-%m-%d") # 2021-04-18(For Database query)
-print(str_dt4)
-my_w.mainloop()
+from PIL import Image
+img = Image.open('imgs/lupa.png')
+img = img.resize((15, 15), Image.ANTIALIAS)
+img.save('imgs/lupa.png')
 
 # import os
 # from PIL import Image

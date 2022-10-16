@@ -27,6 +27,7 @@ def atualizar(update):
     con.commit()
     con.close()
     print("Atualizado com sucesso")
+
 def deletar(delete):
     con = conexao_banco()
     cursor = con.cursor()
@@ -39,19 +40,16 @@ def consultar(consultar):
     con = conexao_banco()
     cursor = con.cursor()
     cursor.execute(consultar)
+    valores = cursor.fetchall()
+    con.close()
+    return valores
+
+def consultar_cargos(consultar):
+    con = conexao_banco()
+    cursor = con.cursor()
+    cursor.execute(consultar)
     dados = cursor.fetchall()
-    caracteres = "[]'(),"
-    valores = []
-    for i in range(len(dados)):
-        valor = dados.pop()
-        for j in range(len(caracteres)):
-            valor = valor.replace(caracteres[j], "")
-        valores.append(valor)
-    print(valores)
-    # for i in valores:
-    #       for j in range(len(caracteres)):
-    #           valores[i] = valores[i].replace(caracteres[j], "")
-    # con.close()
+    dados = " ".join("".join(var) for var in dados)
     return dados
 
 def consultar_cpf(consultar):
@@ -73,6 +71,8 @@ def consultar_cpf(consultar):
 
 # delete = 'DELETE FROM usuario WHERE id=2;'
 # deletar(delete)
+query = 'SELECT DISTINCT nome_cargo FROM cargo;'
+consultar_cargos(query)
 
 #show = 'SELECT user_name, senha FROM usuario;'
-#consultar(show)
+#consultar(query)

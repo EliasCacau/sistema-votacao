@@ -52,6 +52,21 @@ def consultar_cargos(consultar):
     dados = " ".join("".join(var) for var in dados)
     return dados
 
+def consultar_candidatos(consultar):
+    con = conexao_banco()
+    cursor = con.cursor()
+    cursor.execute(consultar)
+    dados = cursor.fetchall()
+    if str(dados) == "[(None,)]":
+        pass
+    else:
+        dados = " ".join("".join(var) for var in dados)
+        caracteres = '"[]'
+        subcaracter = "'"
+        for i in range(len(caracteres)):
+            dados = dados.replace(caracteres[i],"")
+        dados = dados.replace(subcaracter, "")
+    return dados
 def consultar_cpf(consultar):
     con = conexao_banco()
     cursor = con.cursor()

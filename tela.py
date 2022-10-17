@@ -1120,10 +1120,48 @@ class Tela():
         self.lbl_descricao = tk.Label(self.frm_show, text=valores[0][2], font=28, width=70, bg="Black", fg="White")
         self.lbl_descricao.grid(column=0, row=2, columnspan=2)
 
-        self.btn_selecionar_eleicao = tk.Button(self.frm_show, text="Votar nesta eleição", font=8)
+        self.btn_selecionar_eleicao = tk.Button(self.frm_show, text="Votar nesta eleição", font=8, command=self.tela_voto)
         self.btn_selecionar_eleicao.grid(column=0, row=3, columnspan=2, pady=15)
 
+    def tela_voto(self):
+        self.votar = tk.Toplevel()
+        self.votar.geometry("400x300")
+        self.votar.title("Votar")
+        self.lbl_voto = tk.Label(self.votar, text="Área de voto", font=32)
+        self.lbl_voto.pack()
+        self.frm_voto = tk.Frame(self.votar)
+        self.frm_voto.pack(pady=15)
+        self.lbl_num = tk.Label(self.frm_voto, text="Número do candidato")
+        self.lbl_num.grid(column=0, row=0)
+
+        self.ent_num = tk.Entry(self.frm_voto)
+        self.ent_num.grid(column=1, row=0)
+
+        self.btn_num = tk.Button(self.frm_voto, text="Buscar", width=8, command=self.buscar_candidato)
+        self.btn_num.grid(column=0, row=1, columnspan=2, pady=15)
+
+        #self.frm_black = tk.Frame(self.voto)
+        #self.frm_black.pack()
+        #self.borda_imagem = tk.PhotoImage(file="imgs/black.png")
+        #self.lbl_black = tk.Label(self.voto, image=self.borda_imagem)
+        #self.lbl_black.image = self.borda_imagem
+        #self.lbl_black.pack()
+
+        self.minha_imagem = tk.PhotoImage(file="imgs/img1.png")
+        self.lbl_mostrar_cand = tk.Label(self.votar, image=self.minha_imagem)
+        self.lbl_mostrar_cand.image = self.minha_imagem
+        self.lbl_mostrar_cand.pack()
+
+        self.lbl_nome_candidato = tk.Label(self.votar, text="NOME", width=30)
+        self.lbl_nome_candidato.pack()
+
+    def buscar_candidato(self):
+        self.btn_votar = tk.Button(self.votar, text="Votar")
+        self.btn_votar.pack()
 
 app = tk.Tk()
 Tela(app)
 app.mainloop()
+# nao pos
+# botao reset
+# get data para encerrar automaticamente

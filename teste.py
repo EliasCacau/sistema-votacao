@@ -2,11 +2,10 @@ import tkinter as tk
 from tkcalendar import DateEntry
 
 from PIL import Image
-img = Image.open('imgs/img3.png')
-img = img.resize((50, 50), Image.ANTIALIAS)
-img.save('imgs/img3.png')
+img = Image.open('imgs/black.png')
+img = img.resize((100, 100), Image.ANTIALIAS)
+img.save('imgs/black.png')
 
-print(len("Eleição Suprema do Senhor Kaio"))
 # import os
 # from PIL import Image
 # from tkinter import filedialog as fd

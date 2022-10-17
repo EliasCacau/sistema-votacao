@@ -6,6 +6,7 @@ img = Image.open('imgs/img3.png')
 img = img.resize((50, 50), Image.ANTIALIAS)
 img.save('imgs/img3.png')
 
+print(len("Eleição Suprema do Senhor Kaio"))
 # import os
 # from PIL import Image
 # from tkinter import filedialog as fd

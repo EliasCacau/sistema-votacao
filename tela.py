@@ -276,7 +276,7 @@ class Tela():
             for tupla in dados:
                 self.tvw_cargos.insert('', tk.END, values=tupla)
 
-    def filtrar_tvw_cargo(self):
+    def filtrar_tvw_cargo(self, event):
         busca = self.cbx_filtro.get()
         for i in self.tvw_cargos.get_children():
             self.tvw_cargos.delete(i)
@@ -314,10 +314,10 @@ class Tela():
         self.btn_filtro = tk.Button(self.frm_pesq, text="O", width=3, command=self.filtrar_tvw_cargo)
         self.btn_filtro.grid(column=3, row=0, padx=5, pady=5)
         self.minha_imagem = tk.PhotoImage(file="imgs/lupa.png")
-        self.img_lupa = tk.Label(self.cargo_mostrar, image=self.minha_imagem)
-        self.img_lupa.bind("<Button-1>", self.pesquisar_tvw_cargo)
-        self.img_lupa.image = self.minha_imagem
-        self.img_lupa.place(rely=0.065, relx=0.367)
+        self.img_lupa1 = tk.Label(self.cargo_mostrar, image=self.minha_imagem)
+        self.img_lupa1.bind("<Button-1>", self.filtrar_tvw_cargo)
+        self.img_lupa1.image = self.minha_imagem
+        self.img_lupa1.place(rely=0.065, relx=0.367)
 
         self.lbl_pesq = tk.Label(self.frm_pesq, text="Pesquisar:")
         self.lbl_pesq.grid(column=4, row=0, padx=5)
@@ -803,6 +803,12 @@ class Tela():
         if nome == '':
             messagebox.showwarning('Aviso', 'Insira o nome da eleição!')
             self.ins_eleicao.deiconify()
+        elif len(nome) > 50:
+            messagebox.showwarning('Nome muito grande', 'Insira um nome mais curto!')
+            self.ins_eleicao.deiconify()
+        elif len(self.ent_desc.get()) > 70:
+            messagebox.showwarning('Descrição muito grande', 'Insira uma descrição mais breve!')
+            self.ins_eleicao.deiconify()
         elif cargo == '':
             messagebox.showwarning('Aviso', 'Selecione um cargo!')
             self.ins_eleicao.deiconify()
@@ -1077,30 +1083,46 @@ class Tela():
         self.votar = tk.Toplevel()
         self.votar.geometry("800x600")
         self.votar.title("Área de votos")
-        self.welcome = tk.Label(self.votar, text="Bem vindo!", font=38)
-        self.welcome.pack()
+        self.welcome = tk.Label(self.votar, text="Bem vindo!", font=("Verdana", 24))
+        self.welcome.grid(column=0, row=0, padx=300)
 
         self.frm_votacao = tk.Frame(self.votar)
-        self.frm_votacao.pack()
-        self.lbl_eleicoes = tk.Label(self.frm_votacao, text="Cargos:")
+        self.frm_votacao.grid(column=0, row=1, pady=15)
+        self.lbl_eleicoes = tk.Label(self.frm_votacao, text="Eleição:", font=12)
         self.lbl_eleicoes.grid(column=0, row=0)
+        self.cbx_eleicoes = ttk.Combobox(self.frm_votacao, width=30, font=12)
         query = 'SELECT nome FROM eleicao WHERE ativo LIKE TRUE;'
-        rogerio = tk.StringVar()
         valores = bd.consultar(query)
-        self.cbx_eleicoes = ttk.Combobox(self.frm_votacao, width=30, textvariable=rogerio, state="readonly", values = [dado for dado, in valores])
-        # self.cbx_eleicoes['values'] = (valores)
+        listas = [dado for dado, in valores]
+        self.cbx_eleicoes['values'] = (listas)
         self.cbx_eleicoes.grid(column=1, row=0)
         self.cbx_eleicoes.current(0)
 
-        self.btn_conf_eleicao = tk.Button(self.frm_votacao, text="Selecionar eleição", command=self.confirmar_escolha_eleicao)
-        self.btn_conf_eleicao.grid(column=0, row=1, columnspan=2, pady=10)
+        self.btn_conf_eleicao = tk.Button(self.frm_votacao, text="Selecionar eleição", command=self.confirmar_escolha_eleicao, font=4)
+        self.btn_conf_eleicao.grid(column=0, row=1, columnspan=2, pady=20)
 
     def confirmar_escolha_eleicao(self):
         query = f'SELECT * FROM eleicao WHERE nome LIKE "{self.cbx_eleicoes.get()}";'
         valores = bd.consultar(query)
-        print(self.cbx_eleicoes.get())
-        self.lbl_nome_eleicao = tk.Label(self.votar, text=valores)
-        self.lbl_nome_eleicao.pack()
+        self.frm_show = tk.Frame(self.votar)
+        self.frm_show.grid(column=0, row=2)
+
+        self.lbl_nome_eleicao = tk.Label(self.frm_show, text=valores[0][1], width=30, font=38, bg="Black", fg="White")
+        self.lbl_nome_eleicao.grid(column=0, row=0, sticky=tk.EW, columnspan=2)
+
+        self.lbl_desc = tk.Label(self.frm_show, text="Descriçao:                                              "
+                                 , font=28, width=30, bg="Black", fg="White")
+        self.lbl_desc.grid(column=0, row=1, sticky=tk.W, columnspan=2)
+
+        self.lbl_desc2 = tk.Label(self.frm_show, text="", font=28, width=30, bg="Black", fg="White")
+        self.lbl_desc2.grid(column=1, row=1, sticky=tk.EW)
+
+        self.lbl_descricao = tk.Label(self.frm_show, text=valores[0][2], font=28, width=70, bg="Black", fg="White")
+        self.lbl_descricao.grid(column=0, row=2, columnspan=2)
+
+        self.btn_selecionar_eleicao = tk.Button(self.frm_show, text="Votar nesta eleição", font=8)
+        self.btn_selecionar_eleicao.grid(column=0, row=3, columnspan=2, pady=15)
+
 
 app = tk.Tk()
 Tela(app)

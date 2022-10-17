@@ -1084,10 +1084,11 @@ class Tela():
         self.frm_votacao.pack()
         self.lbl_eleicoes = tk.Label(self.frm_votacao, text="Cargos:")
         self.lbl_eleicoes.grid(column=0, row=0)
-        self.cbx_eleicoes = ttk.Combobox(self.frm_votacao, width=30)
         query = 'SELECT nome FROM eleicao WHERE ativo LIKE TRUE;'
+        rogerio = tk.StringVar()
         valores = bd.consultar(query)
-        self.cbx_eleicoes['values'] = (valores)
+        self.cbx_eleicoes = ttk.Combobox(self.frm_votacao, width=30, textvariable=rogerio, state="readonly", values = [dado for dado, in valores])
+        # self.cbx_eleicoes['values'] = (valores)
         self.cbx_eleicoes.grid(column=1, row=0)
         self.cbx_eleicoes.current(0)
 

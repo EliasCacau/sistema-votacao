@@ -1,10 +1,27 @@
 import tkinter as tk
 from tkcalendar import DateEntry
 
-from PIL import Image
-img = Image.open('imgs/refresh.png')
-img = img.resize((15, 15), Image.ANTIALIAS)
-img.save('imgs/refresh.png')
+from datetime import datetime
+
+if __name__ == '__main__':
+
+    first = datetime(2022, 10, 18)
+    second = datetime.now()
+
+    print(first)
+    print(second)
+
+    if first < second:
+        print('Primeira data é menor que a segunda')
+    elif first > second:
+        print('Primeira data é maior que a segunda')
+    else:
+        print('As datas são iguais.')
+
+# from PIL import Image
+# img = Image.open('imgs/refresh.png')
+# img = img.resize((15, 15), Image.ANTIALIAS)
+# img.save('imgs/refresh.png')
 
 # import os
 # from PIL import Image

@@ -82,15 +82,15 @@ class Tela():
         self.lbl_pesq.grid(column=0, row=0)
         self.ent_pesq = tk.Entry(self.frm_pesq)
         self.ent_pesq.grid(column=1, row=0)
-        self.btn_pesq = tk.Button(self.frm_pesq, text="O", width=3, state=tk.DISABLED)
-        self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
 
         self.minha_imagem = tk.PhotoImage(file="imgs/lupa.png")
-        self.img_lupa = tk.Label(self.candidatos, image=self.minha_imagem)
-        self.img_lupa.bind("<Button-1>", self.pesquisar_tvw_candidato)
-        self.img_lupa.image = self.minha_imagem
-        self.img_lupa.place(rely=0.098, relx=0.706)
 
+        self.btn_pesq = tk.Button(self.frm_pesq, text="O", image=self.minha_imagem, width=16, command=self.pesquisar_tvw_candidato)
+        self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
+
+        self.imagem_refresh = tk.PhotoImage(file="imgs/refresh.png")
+        self.btn_refresh = tk.Button(self.frm_pesq, image=self.imagem_refresh, width=16, command=self.refresh_tvw_candidato)
+        self.btn_refresh.grid(column=3, row=0, padx=3)
 
         self.voltar = tk.Button(self.candidatos, text="Voltar", command=self.candidatos.destroy, width=8)
         self.voltar.pack(side=tk.LEFT)
@@ -114,6 +114,13 @@ class Tela():
         self.btn_excluir = tk.Button(self.frm_botao, text="Excluir", command=self.excluir_candidato, width=8)
         self.btn_excluir.grid(column=3, row=0, padx=2)
 
+    def refresh_tvw_candidato(self):
+        for i in self.tvw_candidato.get_children():
+            self.tvw_candidato.delete(i)
+        query = f"SELECT id, nome FROM candidato;"
+        dados = bd.consultar(query)
+        for tupla in dados:
+            self.tvw_candidato.insert('', tk.END, values=tupla)
     def editar_candidato(self):
         selecionado = self.tvw_candidato.selection()
         lista = self.tvw_candidato.item(selecionado, "values")
@@ -243,7 +250,7 @@ class Tela():
         for tupla in dados:
             self.tvw_candidato.insert('', tk.END, values=tupla)
 
-    def pesquisar_tvw_candidato(self, event):
+    def pesquisar_tvw_candidato(self):
         busca = self.ent_pesq.get()
         for i in self.tvw_candidato.get_children():
             self.tvw_candidato.delete(i)
@@ -264,7 +271,7 @@ class Tela():
         for tupla in dados:
             self.tvw_cargos.insert('', tk.END, values=tupla)
 
-    def pesquisar_tvw_cargo(self, event):
+    def pesquisar_tvw_cargo(self):
         busca = self.ent_pesq.get()
         for i in self.tvw_cargos.get_children():
             self.tvw_cargos.delete(i)
@@ -276,7 +283,7 @@ class Tela():
             for tupla in dados:
                 self.tvw_cargos.insert('', tk.END, values=tupla)
 
-    def filtrar_tvw_cargo(self, event):
+    def filtrar_tvw_cargo(self):
         busca = self.cbx_filtro.get()
         for i in self.tvw_cargos.get_children():
             self.tvw_cargos.delete(i)
@@ -293,6 +300,14 @@ class Tela():
                 dados = bd.consultar(query)
                 for tupla in dados:
                     self.tvw_cargos.insert('', tk.END, values=tupla)
+
+    def refresh_tvw_cargos(self):
+        for i in self.tvw_cargos.get_children():
+            self.tvw_cargos.delete(i)
+        query = f"SELECT cargo_id, nome_cargo, candidato_id, nome, partido, num_candidato FROM cargo, candidato WHERE candidato_id = id AND nome_cargo LIKE '{busca}%';"
+        dados = bd.consultar(query)
+        for tupla in dados:
+            self.tvw_candidato.insert('', tk.END, values=tupla)
 
     def mostrar_cargo(self):
         self.cargo_mostrar = tk.Toplevel(self.janela)
@@ -311,25 +326,24 @@ class Tela():
         self.cbx_filtro['values'] = (f'"Todos" {valores}')
         self.cbx_filtro.grid(column=2, row=0)
         self.cbx_filtro.current(0)
-        self.btn_filtro = tk.Button(self.frm_pesq, text="O", width=3, command=self.filtrar_tvw_cargo)
-        self.btn_filtro.grid(column=3, row=0, padx=5, pady=5)
+
         self.minha_imagem = tk.PhotoImage(file="imgs/lupa.png")
-        self.img_lupa1 = tk.Label(self.cargo_mostrar, image=self.minha_imagem)
-        self.img_lupa1.bind("<Button-1>", self.filtrar_tvw_cargo)
-        self.img_lupa1.image = self.minha_imagem
-        self.img_lupa1.place(rely=0.065, relx=0.367)
+        self.btn_filtro = tk.Button(self.frm_pesq, width=15, command=self.filtrar_tvw_cargo, image=self.minha_imagem)
+        self.btn_filtro.grid(column=3, row=0, padx=2, pady=5)
+
 
         self.lbl_pesq = tk.Label(self.frm_pesq, text="Pesquisar:")
         self.lbl_pesq.grid(column=4, row=0, padx=5)
         self.ent_pesq = tk.Entry(self.frm_pesq)
         self.ent_pesq.grid(column=5, row=0)
-        self.btn_pesq = tk.Button(self.frm_pesq, text="O", width=3, command=self.pesquisar_tvw_cargo, state=tk.DISABLED)
+
+        self.btn_pesq = tk.Button(self.frm_pesq, image=self.minha_imagem, width=16, command=self.pesquisar_tvw_cargo)
         self.btn_pesq.grid(column=6, row=0, padx=3, pady=5)
-        self.minha_imagem = tk.PhotoImage(file="imgs/lupa.png")
-        self.img_lupa = tk.Label(self.cargo_mostrar, image=self.minha_imagem)
-        self.img_lupa.bind("<Button-1>", self.pesquisar_tvw_cargo)
-        self.img_lupa.image = self.minha_imagem
-        self.img_lupa.place(rely=0.065, relx=0.677)
+
+        self.imagem_refresh = tk.PhotoImage(file="imgs/refresh.png")
+        self.btn_refresh = tk.Button(self.frm_pesq, image=self.imagem_refresh, width=16,
+                                     command=self.refresh_tvw_cargos)
+        self.btn_refresh.grid(column=7, row=0, padx=3)
 
         self.voltar = tk.Button(self.cargo_mostrar, text="Voltar", command=self.cargo_mostrar.destroy, width=8)
         self.voltar.pack(side=tk.LEFT)
@@ -374,13 +388,9 @@ class Tela():
         self.lbl_pesq.grid(column=0, row=0)
         self.ent_pesq = tk.Entry(self.frmpesq)
         self.ent_pesq.grid(column=1, row=0)
-        self.btn_pesq = tk.Button(self.frmpesq, text="O", width=3, command=self.pesquisar_tvw_candidato, state=tk.DISABLED)
-        self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
         self.minha_imagem = tk.PhotoImage(file="imgs/lupa.png")
-        self.img_lupa = tk.Label(self.ins_cargo, image=self.minha_imagem)
-        self.img_lupa.bind("<Button-1>", self.pesquisar_tvw_candidato)
-        self.img_lupa.image = self.minha_imagem
-        self.img_lupa.place(rely=0.0815, relx=0.662)
+        self.btn_pesq = tk.Button(self.frm_pesq, text="O", image=self.minha_imagem, width=16, command=self.pesquisar_tvw_candidatos_cargos)
+        self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
 
         self.tvw_candidato = ttk.Treeview(self.ins_cargo, columns=('id', 'nome'), show='headings', height=5)
         self.tvw_candidato.column('id', width=40)
@@ -484,17 +494,13 @@ class Tela():
 
         self.frmpesq = tk.Frame(self.edit_cargo)
         self.frmpesq.pack(fill=tk.BOTH, padx=34)
-        self.lbl_pesq = tk.Label(self.frmpesq, text="Pesquisar:")
+        self.lbl_pesq = tk.Label(self.frmpesq, text="Pesquisar:", command=self.pesquisar_tvw_candidatos_cargos)
         self.lbl_pesq.grid(column=0, row=0)
         self.ent_pesq = tk.Entry(self.frmpesq)
         self.ent_pesq.grid(column=1, row=0)
-        self.btn_pesq = tk.Button(self.frmpesq, text="O", width=3, command=self.pesquisar_tvw_candidato, state=tk.DISABLED)
-        self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
         self.minha_imagem = tk.PhotoImage(file="imgs/lupa.png")
-        self.img_lupa = tk.Label(self.edit_cargo, image=self.minha_imagem)
-        self.img_lupa.bind("<Button-1>", self.pesquisar_tvw_candidato)
-        self.img_lupa.image = self.minha_imagem
-        self.img_lupa.place(rely=0.081, relx=0.682)
+        self.btn_pesq = tk.Button(self.frm_pesq, text="O", image=self.minha_imagem, width=16)
+        self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
 
 
         self.tvw_candidato = ttk.Treeview(self.edit_cargo, columns=('id', 'nome'), show='headings', height=5)
@@ -602,13 +608,9 @@ class Tela():
         self.lbl_pesq.grid(column=0, row=0)
         self.ent_pesq = tk.Entry(self.frm_pesq)
         self.ent_pesq.grid(column=1, row=0)
-        self.btn_pesq = tk.Button(self.frm_pesq, text="O", width=3, command=self.pesquisar_tvw_eleicao, state=tk.DISABLED)
-        self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
         self.minha_imagem = tk.PhotoImage(file="imgs/lupa.png")
-        self.img_lupa = tk.Label(self.eleicoes_mostrar, image=self.minha_imagem)
-        self.img_lupa.bind("<Button-1>", self.pesquisar_tvw_eleicao)
-        self.img_lupa.image = self.minha_imagem
-        self.img_lupa.place(rely=0.063, relx=0.27)
+        self.btn_pesq = tk.Button(self.frm_pesq, text="O", image=self.minha_imagem, width=16, command=self.pesquisar_tvw_eleicao)
+        self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
 
         self.tvw_eleicao = ttk.Treeview(self.eleicoes_mostrar, columns=(
         'Id', 'Nome da eleição', 'Descrição', 'Cargo', 'Inicio', 'Fim', "Candidatos" ,'Status'), show='headings', height=18)
@@ -655,19 +657,15 @@ class Tela():
             self.voltar = tk.Button(self.add_candidatos, text="Voltar", command=self.add_candidatos.destroy, width=8)
             self.voltar.pack(side=tk.LEFT)
 
-            self.frmpesqs = tk.Frame(self.add_candidatos)
-            self.frmpesqs.pack(fill=tk.BOTH, padx=30)
-            self.lbl_pesq = tk.Label(self.frmpesqs, text="Pesquisar:")
+            self.frm_pesq = tk.Frame(self.add_candidatos)
+            self.frm_pesq.pack(fill=tk.BOTH, padx=30)
+            self.lbl_pesq = tk.Label(self.frm_pesq, text="Pesquisar:")
             self.lbl_pesq.grid(column=0, row=0)
-            self.ent_pesq = tk.Entry(self.frmpesqs)
+            self.ent_pesq = tk.Entry(self.frm_pesq)
             self.ent_pesq.grid(column=1, row=0)
-            self.btn_pesq = tk.Button(self.frmpesqs, text="O", width=3, command=self.pesquisar_tvw_candidatos_cargos, state=tk.DISABLED)
-            self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
             self.minha_imagem = tk.PhotoImage(file="imgs/lupa.png")
-            self.img_lupa = tk.Label(self.add_candidatos, image=self.minha_imagem)
-            self.img_lupa.bind("<Button-1>", self.pesquisar_tvw_candidatos_cargos)
-            self.img_lupa.image = self.minha_imagem
-            self.img_lupa.place(rely=0.0295, relx=0.72)
+            self.btn_pesq = tk.Button(self.frm_pesq, image=self.minha_imagem, width=16, command=self.pesquisar_tvw_candidatos_cargos)
+            self.btn_pesq.grid(column=2, row=0, padx=3, pady=5)
 
             self.tvw_candidato = ttk.Treeview(self.add_candidatos, columns=('id', 'nome'), show='headings')
             self.tvw_candidato.column('id', width=40)
@@ -680,7 +678,7 @@ class Tela():
             self.btn_adc_cand = tk.Button(self.add_candidatos, text="Adicionar", command=self.confirmar_add_candidato)
             self.btn_adc_cand.pack(pady=10)
 
-    def pesquisar_tvw_candidatos_cargos(self, event):
+    def pesquisar_tvw_candidatos_cargos(self):
         selecionado = self.tvw_eleicao.selection()
         lista = self.tvw_eleicao.item(selecionado, "values")
         busca = self.ent_pesq.get()
@@ -689,7 +687,7 @@ class Tela():
         if busca == '':
             self.atualizar_tvw_candidatos_cargos()
         else:
-            query = f"SELECT id, nome FROM candidato, cargo WHERE cargo.nome_cargo LIKE '{lista[3]}' AND candidato.id = cargo.candidato_id AND nome LIKE '{busca}%';"
+            query = f"SELECT DISTINCT id, nome FROM candidato, cargo WHERE cargo.nome_cargo LIKE '{lista[3]}' AND candidato.id = cargo.candidato_id AND nome LIKE '{busca}%';"
             dados = bd.consultar(query)
             for tupla in dados:
                 self.tvw_candidato.insert('', tk.END, values=tupla)
@@ -916,7 +914,7 @@ class Tela():
         for tupla in dados:
             self.tvw_eleicao.insert('', tk.END, values=tupla)
 
-    def pesquisar_tvw_eleicao(self, event):
+    def pesquisar_tvw_eleicao(self):
         busca = self.ent_pesq.get()
         for i in self.tvw_eleicao.get_children():
             self.tvw_eleicao.delete(i)
@@ -1110,7 +1108,7 @@ class Tela():
         self.lbl_nome_eleicao = tk.Label(self.frm_show, text=valores[0][1], width=30, font=38, bg="Black", fg="White")
         self.lbl_nome_eleicao.grid(column=0, row=0, sticky=tk.EW, columnspan=2)
 
-        self.lbl_desc = tk.Label(self.frm_show, text="Descriçao:                                              "
+        self.lbl_desc = tk.Label(self.frm_show, text="Descriçao:                     "
                                  , font=28, width=30, bg="Black", fg="White")
         self.lbl_desc.grid(column=0, row=1, sticky=tk.W, columnspan=2)
 
@@ -1148,16 +1146,16 @@ class Tela():
         #self.lbl_black.pack()
 
         self.minha_imagem = tk.PhotoImage(file="imgs/img1.png")
-        self.lbl_mostrar_cand = tk.Label(self.votar, image=self.minha_imagem)
+        self.lbl_mostrar_cand = tk.Label(self.frm_voto, image=self.minha_imagem)
         self.lbl_mostrar_cand.image = self.minha_imagem
-        self.lbl_mostrar_cand.pack()
+        self.lbl_mostrar_cand.grid(column=0, row=3)
 
-        self.lbl_nome_candidato = tk.Label(self.votar, text="NOME", width=30)
-        self.lbl_nome_candidato.pack()
+        self.lbl_nome_candidato = tk.Label(self.frm_voto, text="NOME", width=30)
+        self.lbl_nome_candidato.grid(column=0, row=4)
 
     def buscar_candidato(self):
         self.btn_votar = tk.Button(self.votar, text="Votar")
-        self.btn_votar.pack()
+        self.btn_votar.grid(column=0, row=5)
 
 app = tk.Tk()
 Tela(app)

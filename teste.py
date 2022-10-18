@@ -2,9 +2,9 @@ import tkinter as tk
 from tkcalendar import DateEntry
 
 from PIL import Image
-img = Image.open('imgs/black.png')
-img = img.resize((100, 100), Image.ANTIALIAS)
-img.save('imgs/black.png')
+img = Image.open('imgs/refresh.png')
+img = img.resize((15, 15), Image.ANTIALIAS)
+img.save('imgs/refresh.png')
 
 # import os
 # from PIL import Image

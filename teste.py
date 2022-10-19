@@ -3,25 +3,31 @@ from tkcalendar import DateEntry
 
 from datetime import datetime
 
-if __name__ == '__main__':
 
-    first = datetime(2022, 10, 18)
-    second = datetime.now()
+# file = open("apuracao_votos/new_file.txt", "x")
+# file.write("\nNova linha")
+# file.close()
 
-    print(first)
-    print(second)
+# if __name__ == '__main__':
+#
+#     first = datetime(2022, 10, 18)
+#     second = datetime.now()
+#
+#     print(first)
+#     print(second)
+#
+#     if first < second:
+#         print('Primeira data é menor que a segunda')
+#     elif first > second:
+#         print('Primeira data é maior que a segunda')
+#     else:
+#         print('As datas são iguais.')
 
-    if first < second:
-        print('Primeira data é menor que a segunda')
-    elif first > second:
-        print('Primeira data é maior que a segunda')
-    else:
-        print('As datas são iguais.')
-
-# from PIL import Image
-# img = Image.open('imgs/refresh.png')
-# img = img.resize((15, 15), Image.ANTIALIAS)
-# img.save('imgs/refresh.png')
+from PIL import Image
+# for i in range(1,6):
+img = Image.open(f'imgs/img1.png')
+img = img.resize((150, 150), Image.ANTIALIAS)
+img.save(f'imgs/img1.png')
 
 # import os
 # from PIL import Image

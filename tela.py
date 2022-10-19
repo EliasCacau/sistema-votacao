@@ -7,7 +7,6 @@ import bcrypt
 import os
 from PIL import Image
 from tkcalendar import DateEntry
-import re
 
 class Tela():
     def __init__(self, master):
@@ -18,6 +17,15 @@ class Tela():
         self.janela.withdraw()
         self.login()
         self.user_logged = ''
+
+        self.lbl_bem_vindo = tk.Label(self.janela, text="Bem vindo!", font=("Verdana", 38))
+        self.lbl_bem_vindo.pack()
+
+        self.imagem = tk.PhotoImage(file="imgs/background.png")
+        self.lbl_black = tk.Label(self.janela, image=self.imagem)
+        self.lbl_black.image = self.imagem
+        self.lbl_black.pack()
+
 
         self.menu_bar = tk.Menu(self.janela)
         self.janela.config(menu=self.menu_bar)
@@ -38,17 +46,11 @@ class Tela():
         self.menu_bar.add_cascade(label="Eleições", menu=self.eleicao_menu)
 
         self.config_menu = Menu(self.menu_bar, tearoff=0)
-        self.config_menu.add_command(label="Login", command=self.logina)
         self.config_menu.add_command(label="Sair", command=self.janela.quit)
         self.menu_bar.add_cascade(label="Configurações", menu=self.config_menu)
 
         self.date_today = datetime.now()
         self.atualizar_datas_eleicoes()
-
-    def logina(self):
-        self.janela.withdraw()
-        self.login()
-
 
     def atualizar_datas_eleicoes(self):
         data = datetime.today().date().strftime('%d-%m-%Y')
@@ -61,6 +63,7 @@ class Tela():
         self.candidatos = tk.Toplevel(self.janela)
         self.candidatos.geometry("400x335")
         self.candidatos.title("Candidatos")
+        self.candidatos.resizable(False, False)
         self.lbl_cand = tk.Label(self.candidatos, text="          Candidatos", font=32)
         self.lbl_cand.pack()
         #, relwidth=0.50, relheight=0.85
@@ -120,6 +123,7 @@ class Tela():
         self.ins_candidato = tk.Toplevel(self.janela)
         self.ins_candidato.title("Inserir candidatos")
         self.ins_candidato.geometry("400x160")
+        self.ins_candidato.resizable(False, False)
         self.voltar = tk.Button(self.ins_candidato, text="Voltar", command=self.ins_candidato.destroy, width=8)
         self.voltar.pack(side=tk.LEFT)
         self.lbl_titulo = tk.Label(self.ins_candidato, text="Cadastrar Candidato", font=32)
@@ -147,31 +151,32 @@ class Tela():
     def editar_candidato(self):
         selecionado = self.tvw_candidato.selection()
         lista = self.tvw_candidato.item(selecionado, "values")
+        if selecionado != ():
+            self.edit_cand = tk.Toplevel(self.candidatos)
+            self.edit_cand.title("Editar candidato")
+            self.edit_cand.geometry("300x250")
+            self.edit_cand.resizable(False,False)
 
-        self.edit_cand = tk.Toplevel(self.candidatos)
-        self.edit_cand.title("Editar candidato")
-        self.edit_cand.geometry("300x250")
+            self.nome = tk.Label(self.edit_cand, text="Editar candidato", font=32)
+            self.nome.pack()
 
-        self.nome = tk.Label(self.edit_cand, text="Editar candidato", font=32)
-        self.nome.pack()
+            self.frm_edit = tk.Frame(self.edit_cand)
+            self.frm_edit.pack()
+            self.lbl_nome = tk.Label(self.frm_edit, text="Nome:")
+            self.lbl_nome.grid(column=0, row=0, pady=10)
+            self.ent_nome = tk.Entry(self.frm_edit)
+            self.ent_nome.grid(column=1, row=0)
+            self.ent_nome.insert(0, lista[1])
 
-        self.frm_edit = tk.Frame(self.edit_cand)
-        self.frm_edit.pack()
-        self.lbl_nome = tk.Label(self.frm_edit, text="Nome:")
-        self.lbl_nome.grid(column=0, row=0, pady=10)
-        self.ent_nome = tk.Entry(self.frm_edit)
-        self.ent_nome.grid(column=1, row=0)
-        self.ent_nome.insert(0, lista[1])
+            self.edit_img = tk.Label(self.frm_edit, text="Editar Imagem:")
+            self.edit_img.grid(column=0, row=1)
+            self.btn_img = tk.Button(self.frm_edit, text="Selecionar imagem", command=self.edit_imagem_cand)
+            self.btn_img.grid(column=1, row=1)
 
-        self.edit_img = tk.Label(self.frm_edit, text="Editar Imagem:")
-        self.edit_img.grid(column=0, row=1)
-        self.btn_img = tk.Button(self.frm_edit, text="Selecionar imagem", command=self.edit_imagem_cand)
-        self.btn_img.grid(column=1, row=1)
+            self.btn_conf_edit = tk.Button(self.frm_edit, text="Confirmar", command=self.confirmar_edit_cand)
+            self.btn_conf_edit.grid(column=0, row=2, columnspan=2, pady=10)
 
-        self.btn_conf_edit = tk.Button(self.frm_edit, text="Confirmar", command=self.confirmar_edit_cand)
-        self.btn_conf_edit.grid(column=0, row=2, columnspan=2, pady=10)
-
-        self.nova_img = ''
+            self.nova_img = ''
 
     def imagem_candidato(self):
         tipos = (('Imagem', '*.PNG'), ('Imagem', '*.JPG'), ('Todos', '*.*'))
@@ -179,7 +184,7 @@ class Tela():
         if self.imagem.endswith(".jpg"):
             img = Image.open(f'{self.imagem}')
             self.imagem = self.imagem.replace(".jpg", "")
-            img.resize((150, 150), Image.ANTIALIAS)
+            img.resize((64, 64), Image.ANTIALIAS)
             img.save(f'{self.imagem}.png')
             os.remove(f'{self.imagem}.jpg')
             self.imagem = f"{self.imagem}.png"
@@ -198,6 +203,7 @@ class Tela():
         else:
             self.candidato = tk.Toplevel(self.janela)
             self.candidato.title("Candidato")
+            self.candidato.resizable(False, False)
             id = self.tvw_candidato.item(selecionado, 'values')[0]
             sql = f"SELECT * FROM candidato WHERE id={id}"
             valor = bd.consultar(sql)
@@ -215,11 +221,13 @@ class Tela():
             self.ins_candidato.deiconify()
         else:
             if self.imagem == '':
-                self.imagem = f'/imgs/img1.png'
+                dir = os.path.dirname(__file__)
+                self.imagem = f'{dir}/imgs/img1.png'
             sql = f'INSERT INTO candidato ("nome", "foto") VALUES("{nome}", "{self.imagem}");'
             bd.inserir(sql)
             self.atualizar_tvw_candidato()
             messagebox.showinfo('Aviso', 'Candidato inserido com sucesso!')
+            self.ins_candidato.destroy()
             self.candidatos.deiconify()
 
     def edit_imagem_cand(self):
@@ -336,6 +344,7 @@ class Tela():
         self.cargo_mostrar = tk.Toplevel(self.janela)
         self.cargo_mostrar.geometry("750x500")
         self.cargo_mostrar.title("Cargos")
+        self.cargo_mostrar.resizable(False, False)
         self.lbl_cargo = tk.Label(self.cargo_mostrar, text="                 Cargos", font=32)
         self.lbl_cargo.pack()
 
@@ -407,6 +416,7 @@ class Tela():
         self.ins_cargo = tk.Toplevel(self.janela)
         self.ins_cargo.title("Inserir cargos")
         self.ins_cargo.geometry("480x410")
+        self.ins_cargo.resizable(False,False)
         self.voltar = tk.Button(self.ins_cargo, text="Voltar", command=self.ins_cargo.destroy, width=8)
         self.voltar.pack(side=tk.LEFT)
         self.lbl_titulo = tk.Label(self.ins_cargo, text="Cadastrar cargos", font=32)
@@ -525,7 +535,7 @@ class Tela():
 
         if selecionado != ():
             self.edit_cargo = tk.Toplevel()
-            self.edit_cargo.title("Editar candidato")
+            self.edit_cargo.title("Editar cargo")
             self.edit_cargo.geometry("430x410")
             self.edit_cargo.resizable(False,False)
             self.voltar = tk.Button(self.edit_cargo, text="Voltar", command=self.edit_cargo.destroy, width=8)
@@ -641,7 +651,6 @@ class Tela():
                 bd.atualizar(query)
                 self.atualizar_tvw_cargo()
                 self.edit_cargo.destroy()
-                self.cargo_mostrar()
             else:
                 self.edit_cargo.deiconify()
 
@@ -661,6 +670,7 @@ class Tela():
         self.eleicoes_mostrar = tk.Toplevel(self.janela)
         self.eleicoes_mostrar.geometry("1100x500")
         self.eleicoes_mostrar.title("Eleições")
+        self.eleicoes_mostrar.resizable(False, False)
         self.voltar = tk.Button(self.eleicoes_mostrar, text="Voltar", command=self.eleicoes_mostrar.destroy, width=8)
         self.voltar.pack(side=tk.LEFT)
         self.lbl_cargo = tk.Label(self.eleicoes_mostrar, text="     Eleições", font=32)
@@ -713,8 +723,44 @@ class Tela():
         self.btn_excluir.grid(column=2, row=0, padx=3)
         self.btn_add_cand = tk.Button(self.frm_botao, text="Adicionar candidatos", command=self.adicionar_candidatos)
         self.btn_add_cand.grid(column=4, row=0, padx=3)
-        # self.btn_add_cand = tk.Button(self.frm_botao, text="Encerrar eleição", command=self.encerrar_eleicao)
-        # self.btn_add_cand.grid(column=3, row=0, padx=3)
+        self.btn_add_cand = tk.Button(self.frm_botao, text="Apurar votos", command=self.apuracao_votos)
+        self.btn_add_cand.grid(column=5, row=0, padx=3)
+
+    def apuracao_votos(self):
+        selecionado = self.tvw_eleicao.selection()
+        lista = self.tvw_eleicao.item(selecionado, "values")
+        hora = datetime.today().time().strftime('%H_%M_%S')
+        data = datetime.today().date().strftime('%d-%m-%Y')
+        file = open(f"apuracao_votos/{lista[1]}_{hora}.txt", "x")
+        hora = datetime.today().time().strftime('%H:%M:%S')
+        file.write(f'Data: {data} / Hora: {hora}\n\nApuracao de Votos da eleicao: "{lista[1]}"\n')
+        if selecionado != ():
+            query = f'SELECT candidatos FROM eleicao WHERE eleicao_id = "{lista[0]}"'
+            valores = bd.consultar(query)
+            listas = [dado for dado, in valores]
+            ids = []
+            num = ''
+            for j in listas:
+                for i in j:
+                    if i.isdigit():
+                        num = num + i
+                    else:
+                        if num != '':
+                            ids.append(num)
+                        num = ''
+            for i in ids:
+                query = f'SELECT COUNT(voto_id) FROM voto WHERE eleicao_id = {lista[0]} AND cargo = "{lista[3]}" AND candidato_id = {i}'
+                votos = bd.consultar(query)
+                query2 = f'SELECT nome_candidato FROM cargo WHERE candidato_id = {i}'
+                nomes = bd.consultar(query2)
+                print(f'{nomes[0][0]} {votos[0][0]}\n')
+                file.write(f'{nomes[0][0]} {votos[0][0]}\n')
+            query = f'SELECT COUNT(voto_id) FROM voto WHERE eleicao_id = {lista[0]} AND cargo = "{lista[3]}"'
+            total = bd.consultar(query)
+            file.write(f"Total de votos: {total[0][0]}")
+            file.close()
+            messagebox.showinfo("Votos apurados", "Votos apurados com sucesso!")
+            self.eleicoes_mostrar.deiconify()
 
     def adicionar_candidatos(self):
         selecionado = self.tvw_eleicao.selection()
@@ -722,6 +768,7 @@ class Tela():
         if selecionado != ():
             self.add_candidatos = tk.Toplevel()
             self.add_candidatos.geometry("400x330")
+            self.add_candidatos.resizable(False, False)
             self.voltar = tk.Button(self.add_candidatos, text="Voltar", command=self.add_candidatos.destroy, width=8)
             self.voltar.pack(side=tk.LEFT)
 
@@ -812,22 +859,11 @@ class Tela():
             else:
                 self.add_candidatos.deiconify()
 
-    # def encerrar_eleicao(self):
-    #     selecionado = self.tvw_eleicao.selection()
-    #     lista = self.tvw_eleicao.item(selecionado, "values")
-    #
-    #     if lista != ():
-    #         message = messagebox.askyesno("Encerrar eleição", "Você tem certeza que deseja encerrar a eleição?")
-    #         if message:
-    #             query = f'UPDATE eleicao SET ativo=FALSE WHERE eleicao_id = {lista[0]};'
-    #             bd.atualizar(query)
-    #             self.atualizar_tvw_eleicao()
-    #         self.eleicoes_mostrar.deiconify()
-
     def inserir_eleicao(self):
         self.ins_eleicao = tk.Toplevel(self.janela)
         self.ins_eleicao.title("Inserir eleições")
         self.ins_eleicao.geometry("400x300")
+        self.ins_eleicao.resizable(False,False)
         self.voltar = tk.Button(self.ins_eleicao, text="Voltar", command=self.ins_eleicao.destroy, width=8)
         self.voltar.pack(side=tk.LEFT)
         self.lbl_titulo = tk.Label(self.ins_eleicao, text="Cadastrar Eleição", font=32)
@@ -898,6 +934,7 @@ class Tela():
         self.edit_eleicao = tk.Toplevel()
         self.edit_eleicao.title("Editar candidato")
         self.edit_eleicao.geometry("400x250")
+        self.edit_eleicao.resizable(False, False)
         self.voltar = tk.Button(self.edit_eleicao, text="Voltar", command=self.edit_eleicao.destroy, width=8)
         self.voltar.pack(side=tk.LEFT)
 
@@ -996,10 +1033,6 @@ class Tela():
         else:
             query = f"SELECT * FROM eleicao WHERE nome LIKE '{busca}%';"
             dados = bd.consultar(query)
-            #if dados == []:
-                #messagebox.showinfo("Sem dados", "Sem correspondencia a busca!")
-                #self.mostrar_eleicoes.deiconify()
-            #else:
             for tupla in dados:
                 self.tvw_eleicao.insert('', tk.END, values=tupla)
 
@@ -1007,6 +1040,7 @@ class Tela():
         self.login = tk.Toplevel()
         self.login.geometry("400x400")
         self.login.title("Login")
+        self.login.resizable(False, False)
         # Login/Cadastro
         self.frm_login = tk.Frame(self.login)
         self.frm_login.pack(pady=50)
@@ -1032,16 +1066,6 @@ class Tela():
 
         self.btn_cadastro = tk.Button(self.frm_login, text="Cadastre-se", command=self.cadastro, width=12)
         self.btn_cadastro.grid(column=0, row=7, pady=20)
-
-        self.btn_destroir = tk.Button(self.frm_login, text="VOTE AQUI", command=self.votacao)
-        self.btn_destroir.grid(column=1, row=7)
-
-        self.btn_admin = tk.Button(self.frm_login, text="ADMINISTRADOR", command=self.adm)
-        self.btn_admin.grid(column=1, row=8)
-
-    def adm(self):
-        self.login.destroy()
-        self.janela.deiconify()
 
     def confirma_login(self):
         cpf = self.ent_cpf.get()
@@ -1071,32 +1095,35 @@ class Tela():
 
     def cadastro(self):
         self.cadastro = tk.Toplevel()
-        self.cadastro.geometry("300x250")
+        self.cadastro.geometry("400x400")
+        self.cadastro.title("Cadastro")
+        self.cadastro.resizable(False, False)
+        self.lbl_vazio = tk.Label(self.cadastro).pack(pady=5)
         self.lbl_nome = tk.Label(self.cadastro, text="Nome")
         self.lbl_nome.pack()
         self.ent_nome = tk.Entry(self.cadastro)
-        self.ent_nome.pack()
+        self.ent_nome.pack(pady=7)
 
         self.lbl_cpf = tk.Label(self.cadastro, text="CPF")
         self.lbl_cpf.pack()
         self.ent_cpf = tk.Entry(self.cadastro)
-        self.ent_cpf.pack()
+        self.ent_cpf.pack(pady=4)
 
         self.lbl_senha = tk.Label(self.cadastro, text="Senha")
         self.lbl_senha.pack()
         self.ent_senha = tk.Entry(self.cadastro, show="*")
-        self.ent_senha.pack()
+        self.ent_senha.pack(pady=4)
 
         self.lbl_con_senha = tk.Label(self.cadastro, text="Confirmar senha")
         self.lbl_con_senha.pack()
         self.ent_con_senha = tk.Entry(self.cadastro, show="*")
-        self.ent_con_senha.pack()
+        self.ent_con_senha.pack(pady=4)
 
         self.lbl_sexo = tk.Label(self.cadastro, text="Sexo")
         self.lbl_sexo.pack()
         self.cbx_sexo = ttk.Combobox(self.cadastro, width=17)
         self.cbx_sexo['values'] = ('Masculino', 'Feminino', 'Indefinido')
-        self.cbx_sexo.pack()
+        self.cbx_sexo.pack(pady=4)
 
         self.btn_con_cadastro = tk.Button(self.cadastro, text="Confirmar", command=self.confirma_cadastro)
         self.btn_con_cadastro.pack(pady=10)
@@ -1140,7 +1167,7 @@ class Tela():
                     confirmar = True
                     break
             if not confirmar:
-                query = f'INSERT INTO usuario ("nome", "senha", "tipo", "eleicao_votada", "cpf", "sexo") VALUES ("{nome}", "{senha}", "Usuário", "[]", "{cpf}", "{sexo}");'
+                query = f'INSERT INTO usuario ("nome", "senha", "tipo", "eleicao_votada", "cpf", "sexo") VALUES ("{nome}", "{senha}", "Usuário", NULL, "{cpf}", "{sexo}");'
                 bd.inserir(query)
                 messagebox.showinfo("SUCESSO!", "Usuário criado com sucesso!")
                 self.cadastro.destroy()
@@ -1151,27 +1178,37 @@ class Tela():
     def votacao(self):
         self.login.destroy()
         self.votar = tk.Toplevel()
-        self.votar.geometry("800x600")
-        self.votar.title("Área de votos")
-        self.welcome = tk.Label(self.votar, text="Bem vindo!", font=("Verdana", 24))
-        self.welcome.grid(column=0, row=0, padx=300)
+        self.votar.geometry("780x400")
+        listas = self.controle_votacao()
+        if listas != []:
+            self.votar.title("Área de votos")
+            self.votar.resizable(False, False)
+            self.welcome = tk.Label(self.votar, text="Bem vindo!", font=("Verdana", 24))
+            self.welcome.grid(column=0, row=0, padx=300)
 
-        self.frm_votacao = tk.Frame(self.votar)
-        self.frm_votacao.grid(column=0, row=1, pady=15)
-        self.lbl_eleicoes = tk.Label(self.frm_votacao, text="Eleição:", font=12)
-        self.lbl_eleicoes.grid(column=0, row=0)
-        self.cbx_eleicoes = ttk.Combobox(self.frm_votacao, width=30, font=12)
-        query = 'SELECT nome FROM eleicao WHERE ativo LIKE TRUE;'
-        valores = bd.consultar(query)
-        listas = [dado for dado, in valores]
-        self.cbx_eleicoes['values'] = (listas)
-        self.cbx_eleicoes.grid(column=1, row=0)
-        self.cbx_eleicoes.current(0)
+            self.frm_votacao = tk.Frame(self.votar)
+            self.frm_votacao.grid(column=0, row=1, pady=15)
+            self.lbl_eleicoes = tk.Label(self.frm_votacao, text="Eleição:", font=12)
+            self.lbl_eleicoes.grid(column=0, row=0)
+            self.cbx_eleicoes = ttk.Combobox(self.frm_votacao, width=30, font=12)
 
-        self.btn_conf_eleicao = tk.Button(self.frm_votacao, text="Selecionar eleição", command=self.confirmar_escolha_eleicao, font=4)
-        self.btn_conf_eleicao.grid(column=0, row=1, columnspan=2, pady=20)
+            self.cbx_eleicoes['values'] = (listas)
+            self.cbx_eleicoes.grid(column=1, row=0)
+            self.cbx_eleicoes.current(0)
+
+            self.btn_conf_eleicao = tk.Button(self.frm_votacao, text="Selecionar eleição", command=self.confirmar_escolha_eleicao, font=4)
+            self.btn_conf_eleicao.grid(column=0, row=1, columnspan=2, pady=20)
+        else:
+            self.votar.title("Área de votos")
+            self.welcome = tk.Label(self.votar, text="Desculpe, sem eleições no momento!", font=("Verdana", 24))
+            self.welcome.grid(column=0, row=0, padx=100)
+
 
     def confirmar_escolha_eleicao(self):
+        query = f'SELECT eleicao_id FROM eleicao WHERE nome LIKE "{self.cbx_eleicoes.get()}";'
+        valores = bd.consultar(query)
+        listas = [dado for dado, in valores]
+        self.id_eleicao = listas
         query = f'SELECT * FROM eleicao WHERE nome LIKE "{self.cbx_eleicoes.get()}";'
         valores = bd.consultar(query)
         self.frm_show = tk.Frame(self.votar)
@@ -1194,21 +1231,49 @@ class Tela():
         self.btn_selecionar_eleicao.grid(column=0, row=3, columnspan=2, pady=15)
 
     def controle_votacao(self):
-        query = "SELECT eleicao_votada FROM usuario"
+        query = f'SELECT eleicao_votada FROM usuario WHERE id = "{self.user_logged}"'
         valores = bd.consultar(query)
-        query = "SELECT eleicao_id FROM eleicao"
-        valores2 = bd.consultar(query)
+        if str(valores) == "[(None,)]":
+            query = 'SELECT nome FROM eleicao WHERE ativo LIKE TRUE;'
+            eleicoes = bd.consultar(query)
+            listas = [dado for dado, in eleicoes]
+            return listas
+        else:
+            listas = [dado for dado, in valores]
+            ids = []
+            num = ''
+            for j in listas:
+                for i in j:
+                    if i.isdigit():
+                        num = num + i
+                    else:
+                        if num != '':
+                            ids.append(num)
+                        num = ''
+            query = 'SELECT eleicao_id, nome FROM eleicao WHERE ativo LIKE TRUE;'
+            eleicoes = bd.consultar(query)
+            listas = []
+            for i in eleicoes:
+                flag = True
+                for j in ids:
+                    if str(i[0]) == str(j):
+                        flag = False
+                if flag:
+                    listas.append(i[1])
+            return listas
 
-        #COMPARAR PARA VERIFICAR SE O USUARIO VOTOU NA ELEICAO
     def tela_voto(self):
-        self.votar = tk.Toplevel()
-        self.votar.geometry("400x300")
-        self.votar.title("Votar")
-        self.lbl_voto = tk.Label(self.votar, text="Área de voto", font=32)
+        self.eleicao_selecionado = self.cbx_eleicoes.get()
+        self.votar.destroy()
+        self.tela_votar = tk.Toplevel()
+        self.tela_votar.geometry("400x300")
+        self.tela_votar.title("Votar")
+        self.tela_votar.resizable(False, False)
+        self.lbl_voto = tk.Label(self.tela_votar, text="Área de voto", font=32)
         self.lbl_voto.pack()
-        self.frm_voto = tk.Frame(self.votar)
+        self.frm_voto = tk.Frame(self.tela_votar)
         self.frm_voto.pack(pady=15)
-        self.lbl_num = tk.Label(self.frm_voto, text="Número do candidato")
+        self.lbl_num = tk.Label(self.frm_voto, text="Número do candidato:")
         self.lbl_num.grid(column=0, row=0)
 
         self.ent_num = tk.Entry(self.frm_voto)
@@ -1227,18 +1292,85 @@ class Tela():
         self.minha_imagem_tela_voto = tk.PhotoImage(file="imgs/img1.png")
         self.lbl_mostrar_cand = tk.Label(self.frm_voto, image=self.minha_imagem_tela_voto)
         self.lbl_mostrar_cand.image = self.minha_imagem_tela_voto
-        self.lbl_mostrar_cand.grid(column=0, row=3)
+        self.lbl_mostrar_cand.grid(column=0, row=3, columnspan=2)
 
         self.lbl_nome_candidato = tk.Label(self.frm_voto, text="NOME", width=30)
-        self.lbl_nome_candidato.grid(column=0, row=4)
+        self.lbl_nome_candidato.grid(column=0, row=4, columnspan=2)
 
     def buscar_candidato(self):
-        self.btn_votar = tk.Button(self.frm_voto, text="Votar")
-        self.btn_votar.grid(column=0, row=5)
+        if not self.ent_num.get().isdigit():
+            messagebox.showinfo("Digite apenas números", "Digite apenas número")
+        elif self.ent_num.get() != '' and self.ent_num.get().isdigit():
+            query = f'SELECT candidatos FROM eleicao WHERE nome = "{self.eleicao_selecionado}"'
+            valores = bd.consultar(query)
+            listas = [dado for dado, in valores]
+            num = ''
+            ids = []
+            for i in listas:
+                for j in i:
+                    if j.isdigit():
+                        num = num + j
+                    else:
+                        if num != '':
+                            ids.append(num)
+                        num = ''
+            for i in ids:
+                query = f'SELECT nome_cargo, nome_candidato, foto FROM cargo, candidato  WHERE num_candidato = "{self.ent_num.get()}" AND candidato_id = "{i}"'
+                valores = bd.consultar(query)
+                self.dados_cand = valores
+                print(self.dados_cand)
+                if valores != []:
+                    self.id_candidato = i
+
+                    self.minha_imagem_tela_voto = tk.PhotoImage(file=f"{self.dados_cand[0][2]}")
+                    self.lbl_mostrar_cand = tk.Label(self.frm_voto, image=self.minha_imagem_tela_voto)
+                    self.lbl_mostrar_cand.image = self.minha_imagem_tela_voto
+                    self.lbl_mostrar_cand.grid(column=0, row=3, columnspan=2)
+
+                    self.lbl_nome_candidato = tk.Label(self.frm_voto, text=f"{self.dados_cand[0][1]}", width=30)
+                    self.lbl_nome_candidato.grid(column=0, row=4, columnspan=2)
+
+                    self.btn_votar = tk.Button(self.frm_voto, text="Votar", command=self.contar_voto)
+                    self.btn_votar.grid(column=0, row=5, columnspan=2, pady=5)
+                    break
+
+    def contar_voto(self):
+        message = messagebox.askyesno("Tem certeza?", f'Você tem certeza que deseja votar no candidato "{self.dados_cand[0][1]}" para "{self.dados_cand[0][0]}"')
+        if message:
+            #print(f"user_id: {self.user_logged}")
+            #print(f"eleicao_id: {self.id_eleicao[0]}")
+            #print(f"candidato_id: {self.id_candidato}")
+            #print(f"Cargo: {self.dados_cand[0][0]}")
+            data = datetime.today().date().strftime('%d-%m-%Y')
+            #print(f"data: {data}")
+            hora = datetime.today().time().strftime('%H:%M:%S')
+            #print(f"hora: {hora}")
+            query = f'INSERT INTO voto ("user_id", "eleicao_id", "candidato_id", "cargo", "data", "hora") VALUES ("{self.user_logged}", "{self.id_eleicao[0]}", "{self.id_candidato}", "{self.dados_cand[0][0]}", "{data}", "{hora}");'
+            bd.inserir(query)
+            sql = f'SELECT eleicao_votada FROM usuario WHERE id={self.user_logged}'
+            valores = bd.consultar(sql)
+            ids = [] = []
+            if str(valores) == "[(None,)]":
+                valores.pop()
+                ids.append(self.id_eleicao[0])
+            else:
+                listas = [dado for dado, in valores]
+                num = ''
+                for i in listas:
+                    for j in i:
+                        if j.isdigit():
+                            num = num + j
+                        else:
+                            if num != '':
+                                ids.append(num)
+                            num = ''
+                ids.append(self.id_eleicao[0])
+            print(ids)
+            query = f'UPDATE usuario SET eleicao_votada="{ids}" WHERE id={self.user_logged}'
+            bd.atualizar(query)
+            self.votacao()
+            self.tela_votar.destroy()
 
 app = tk.Tk()
 Tela(app)
 app.mainloop()
-# nao pos
-# botao reset
-# get data para encerrar automaticamente
